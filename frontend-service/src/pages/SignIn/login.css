@@ -1,0 +1,100 @@
+.login-form {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+}
+
+input[type="email"],
+input[type="password"] {
+  margin-bottom: 10px;
+  padding: 12px;
+  width: 100%;
+  border: 1px solid #736b60;
+  font-size: 14px;
+  background-color: #ffffff;
+}
+
+.login-button {
+  background-color: #65afff;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  height: 800px;
+  background-color: #ffffff;
+}
+
+.extras {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.forgot-password {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+label {
+  display: flex;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+p {
+  display: block;
+  margin-top: 20px;
+  padding-bottom: 15px;
+  text-align: center;
+}
+
+.accountSignUp {
+  display: block;
+  margin-top: 20px;
+  padding-bottom: 15px;
+  text-align: center;
+}
+
+.signUpText {
+  color: #0f3dde;
+}
+
+.login-graphic {
+  flex: 1;
+  flex-direction: column;
+  background: linear-gradient(145.02deg, #44cfee 0%, #1e94e9 97.16%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+.login-graphic img {
+  max-width: 100%;
+  height: auto;
+}
+
+.login-container {
+  display: flex;
+  max-width: 1000px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 50px;
+}

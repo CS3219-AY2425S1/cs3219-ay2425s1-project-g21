@@ -1,0 +1,28 @@
+.account-button a {
+  background-color: #072ac8;
+  color: white;
+  padding: 10px;
+  border-radius: 15px;
+  text-decoration: none;
+}
+
+.account-button a:hover {
+  background-color: #8ee3ef;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 50px;
+}
+
+.nav-links a {
+  font-weight: bold;
+}
+
+.navbar {
+  display: flex;
+  padding: 30px;
+  position: fixed;
+  top: 0;
+}

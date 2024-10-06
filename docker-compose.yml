@@ -1,0 +1,65 @@
+services:
+
+  frontend-service:
+    build: ./frontend-service
+    ports:
+      - 3000:3000
+    depends_on:
+      - question-service
+      - user-service
+    volumes:
+      - ./frontend-service:/app
+      - /app/node_modules
+
+  question-service:
+    build: ./question-service
+    ports:
+      - 8080:8080
+    depends_on:
+      - question-db
+    volumes:
+      - ./question-service:/app
+      - /app/node_modules
+
+  user-service:
+    build: ./user-service
+    ports:
+      - 3001:3001
+    depends_on:
+      - user-db
+    volumes:
+      - ./user-service:/app
+      - /app/node_modules
+
+  user-db:
+    image: mongo:latest
+    container_name: user-db
+    volumes:
+      - ./db-init/init-user-db.js:/docker-entrypoint-initdb.d/init-user-db.js
+      - user-db-data:/data/db
+    ports:
+      - 27017:27017
+
+  question-db:
+    image: mongo:latest
+    container_name: question-db
+    volumes:
+      - ./db-init/init-question-db.js:/docker-entrypoint-initdb.d/init-question-db.js
+      - question-db-data:/data/db
+    ports:
+      - 27018:27017
+
+
+volumes:
+  user-db-data:
+    name: user-db-data
+  question-db-data:
+    name: question-db-data
+
+
+# Notes:
+#
+# Docker Compose will automatically create an internal network where services can resolve each other using their service names.
+#
+# For example, inside your frontend-service code, you can make requests to the question-service like this:
+# - const questionServiceURL = "http://question-service:3001/api/questions";  # Hostname is the service name

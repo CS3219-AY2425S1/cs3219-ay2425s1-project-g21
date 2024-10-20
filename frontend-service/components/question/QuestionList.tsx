@@ -97,16 +97,7 @@ const QuestionList: React.FC = () => {
 
   return (
     <Box display="flex" justifyContent="flex-end">
-      <Card
-        p={6}
-        borderRadius="lg"
-        maxW="1000px"
-        position="absolute"
-        right="24px"
-        sx={{
-          left: "calc(50% - 325px)",
-        }}
-      >
+      <Card p={6} borderRadius="lg" maxW="1000px">
         {/* Search bar */}
         <Box mb={6}>
           <InputGroup>
@@ -222,7 +213,7 @@ const QuestionList: React.FC = () => {
                     </Box>
                   </Td>
 
-                  <Td>{question.category.join(', ')}</Td>
+                  <Td>{question.category.join(", ")}</Td>
                 </Tr>
               ))}
             </Tbody>

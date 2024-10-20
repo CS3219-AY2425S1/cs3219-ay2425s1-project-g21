@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { isValidObjectId } from "mongoose";
 import {
   createUser as _createUser,

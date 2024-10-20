@@ -4,7 +4,11 @@ import "./login.css";
 import signupGraphic from "../../assets/images/signup_graphic.png";
 import { useToast } from "@chakra-ui/react";
 
-const Login: React.FC = () => {
+interface LoginProps {
+  updateAuthStatus: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const Login: React.FC<LoginProps> = ({ updateAuthStatus }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -25,6 +29,7 @@ const Login: React.FC = () => {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem("token", data.data.accessToken);
+        updateAuthStatus(true);
         navigate("/questions");
       } else {
         toast({

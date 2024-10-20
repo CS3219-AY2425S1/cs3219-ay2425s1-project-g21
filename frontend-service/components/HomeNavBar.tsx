@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 
-export default function HomeNavBar() {
+export default function HomeNavBar({ isAuthenticated }) {
   return (
     <Box as="nav" position="fixed" top="0" left="0" right="0" zIndex="1000">
       <Box
@@ -48,26 +48,33 @@ export default function HomeNavBar() {
                   About Us
                 </Button>
               </Link>
-              <Link to="/login">
-                <Button variant="ghost" fontWeight="bold" mr={86}>
-                  Login
+              { !isAuthenticated &&
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" fontWeight="bold" mr={86}>
+                    Login
+                  </Button>
+                </Link>
+              </>
+              }
+              { isAuthenticated &&
+                <Button
+                  as={Link}
+                  to="/my-account"
+                  display={{ base: "none", md: "inline-flex" }}
+                  fontSize={"sm"}
+                  fontWeight={600}
+                  color={"white"}
+                  bg={"blue.300"}
+                  _hover={{
+                    bg: "blue.300",
+                  }}
+                  ml={4}
+                >
+                  My Account
                 </Button>
-              </Link>
-              <Button
-                as={Link}
-                to="/my-account"
-                display={{ base: "none", md: "inline-flex" }}
-                fontSize={"sm"}
-                fontWeight={600}
-                color={"white"}
-                bg={"blue.300"}
-                _hover={{
-                  bg: "blue.300",
-                }}
-                ml={4}
-              >
-                My Account
-              </Button>
+              }
+
             </Flex>
           </Flex>
         </Container>

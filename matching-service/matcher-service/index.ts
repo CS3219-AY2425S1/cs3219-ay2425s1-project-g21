@@ -102,24 +102,39 @@ const printTopicQueues = () => {
   });
 })();
 
+const isValidDifficultyPair = (difficultyA: string, difficultyB: string) => {
+  if (difficultyA === "Hard" && difficultyB === "Easy") {
+    return false;
+  } else if (difficultyA === "Easy" && difficultyB === "Hard") {
+    return false;
+  }
+  return true;
+}
+
 // Continuous function to periodically run the matching algorithm per topic
 const runMatchingAlgorithm = async () => {
   setInterval(async () => {
     for (const [topic, queue] of matchRequestsByTopic.entries()) {
-      if (queue.length > 1) {
-        const matchReqDataA = queue.shift();
-        const matchReqDataB = queue.shift();
+      // Continue matching until fewer than two requests remain in the queue
+      while (queue.length > 1) {
+        // Peek the first two requests without removing them to check their difficulties
+        const matchReqDataA = queue[0];
+        const matchReqDataB = queue[1];
 
-        // Ensure both requests are valid
-        if (matchReqDataA && matchReqDataB) {
+        // Ensure both requests are valid and have the same difficulty
+        if (matchReqDataA && matchReqDataB && isValidDifficultyPair(matchReqDataA.difficulty, matchReqDataB.difficulty)) {
+          // Remove these two requests from the queue
+          queue.shift(); // Remove matchReqDataA
+          queue.shift(); // Remove matchReqDataB
+
           const matchResult = {
             userA: matchReqDataA.userID,
             userB: matchReqDataB.userID,
             topic: matchReqDataA.topic,
+            difficulty: matchReqDataA.difficulty,
           };
-          console.log(
-            `Match found in topic '${topic}': ${JSON.stringify(matchResult)}`
-          );
+
+          console.log(`Match found in topic '${topic}' with difficulty '${matchReqDataA.difficulty}': ${JSON.stringify(matchResult)}`);
 
           // Produce a `match-found-event`
           await kafkaProducer.send({
@@ -129,11 +144,15 @@ const runMatchingAlgorithm = async () => {
 
           // Print the current state of the topic queues
           printTopicQueues();
+        } else {
+          // If difficulties don’t match, skip matching these two and break to wait for a compatible request
+          break;
         }
       }
     }
   }, 2000);
 };
+
 
 // Start the producer and the continuous matching algorithm
 (async () => {

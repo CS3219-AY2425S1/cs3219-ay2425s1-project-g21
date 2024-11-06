@@ -26,11 +26,31 @@ spec:
                 configMapKeyRef:
                   key: DB_LOCAL_URI
                   name: user-service-config
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: user-service-config
+                  key: PORT
             - name: ENV
               valueFrom:
                 configMapKeyRef:
-                  key: ENV
                   name: user-service-config
+                  key: ENV
+            - name: DB_CLOUD_URI
+              valueFrom:
+                secretKeyRef:
+                  name: user-service-secrets
+                  key: DB_CLOUD_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: user-service-secrets
+                  key: JWT_SECRET
+            - name: SENDGRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: user-service-secrets
+                  key: SENDGRID_API_KEY
           resources:
             limits:
               cpu: "500m"

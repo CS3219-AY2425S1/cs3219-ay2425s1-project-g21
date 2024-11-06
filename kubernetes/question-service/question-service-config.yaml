@@ -5,4 +5,5 @@ metadata:
   namespace: default
 data:
   MONGODB_URI: "mongodb://question-db:27017/question-db"
-  ENV: "PROD"
+  ENV: "DEV"
+  PORT: "8080"

@@ -31,13 +31,15 @@ spec:
                 configMapKeyRef:
                   key: ENV
                   name: question-service-config
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: question-service-config
+                  key: PORT
           resources:
-            requests:
+            limits:
               cpu: "250m"
               memory: "512Mi"
-            limits:
-              cpu: "500m"
-              memory: "1Gi"
 
 ---
 apiVersion: v1

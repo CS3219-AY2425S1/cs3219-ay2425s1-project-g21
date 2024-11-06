@@ -21,10 +21,56 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5002
+          env:
+            - name: AUTH_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: AUTH_DOMAIN
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: DATABASE_URL
+            - name: PROJECT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: PROJECT_ID
+            - name: STORAGE_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: STORAGE_BUCKET
+            - name: MESSAGING_SENDER_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: MESSAGING_SENDER_ID
+            - name: APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: APP_ID
+            - name: MEASUREMENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: MEASUREMENT_ID
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: PORT
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: history-service-secrets
+                  key: API_KEY
           resources:
             limits:
               cpu: "500m"
-              memory: "128Mi"
+              memory: "256Mi"
 
 ---
 # Service

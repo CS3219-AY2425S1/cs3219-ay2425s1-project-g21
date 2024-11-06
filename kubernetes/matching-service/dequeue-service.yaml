@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dequeue-deployment
+  labels:
+    app: dequeue-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dequeue-service
+  template:
+    metadata:
+      labels:
+        app: dequeue-service
+    spec:
+      containers:
+        - name: dequeue-service
+          image: gcr.io/cs3219-peerprep-440616/dequeue-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3004
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dequeue-service
+  namespace: default
+spec:
+  selector:
+    app: dequeue-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3004
+  type: ClusterIP

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: question-service-config
+  namespace: default
+data:
+  MONGODB_URI: "mongodb://question-db:27017/question-db"
+  ENV: "PROD"

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+  namespace: default
+data:
+  DB_LOCAL_URI: "mongodb://user-db:27017/user-db"
+  ENV: "PROD"

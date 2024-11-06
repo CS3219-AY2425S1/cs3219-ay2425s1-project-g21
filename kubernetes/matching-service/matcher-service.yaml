@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matcher-deployment
+  labels:
+    app: matcher-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: matcher-service
+  template:
+    metadata:
+      labels:
+        app: matcher-service
+    spec:
+      containers:
+        - name: matcher-service
+          image: gcr.io/cs3219-peerprep-440616/matcher-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3003
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matcher-service
+  namespace: default
+spec:
+  selector:
+    app: matcher-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3003
+  type: ClusterIP

@@ -1,0 +1,42 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collaboration-deployment
+  labels:
+    app: collaboration-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collaboration-service
+  template:
+    metadata:
+      labels:
+        app: collaboration-service
+    spec:
+      containers:
+        - name: collaboration-service
+          image: gcr.io/cs3219-peerprep-440616/collaboration-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5001
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: collaboration-service
+spec:
+  selector:
+    app: collaboration-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5001
+  type: ClusterIP

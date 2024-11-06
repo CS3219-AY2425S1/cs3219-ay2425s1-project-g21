@@ -41,4 +41,25 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 3002
-  type: ClusterIP
+  type: LoadBalancer
+  loadBalancerIP: "34.87.78.127" # Reserved static IP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: request-service-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: request-service
+  minReplicas: 1
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50

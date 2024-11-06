@@ -54,8 +54,8 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 3001
-  type: ClusterIP
----
+  type: LoadBalancer
+  loadBalancerIP: "34.143.154.218" # Reserved static IP
 
 ---
 apiVersion: autoscaling/v2
@@ -75,4 +75,4 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 40
+          averageUtilization: 50

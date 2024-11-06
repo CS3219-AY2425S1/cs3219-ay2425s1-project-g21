@@ -38,4 +38,25 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 3004
-  type: ClusterIP
+  type: LoadBalancer
+  loadBalancerIP: "35.247.132.154" # Reserved static IP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: dequeue-service-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dequeue-service
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50

@@ -59,6 +59,7 @@ spec:
       port: 80
       targetPort: 3000
   type: LoadBalancer
+  loadBalancerIP: "35.247.181.203" # Reserved static IP
 
 ---
 apiVersion: autoscaling/v2
@@ -69,9 +70,9 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: frontend-deployment
+    name: frontend-service
   minReplicas: 1
-  maxReplicas: 5
+  maxReplicas: 10
   metrics:
     - type: Resource
       resource:

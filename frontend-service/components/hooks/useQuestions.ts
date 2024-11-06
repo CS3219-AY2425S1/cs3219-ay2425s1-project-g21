@@ -10,7 +10,7 @@ const useQuestions = () => {
 
   const fetchQuestions = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/questions");
+      const response = await fetch("http://question-service/api/questions");
       if (!response.ok) {
         throw new Error("Failed to fetch questions");
       }
@@ -29,7 +29,7 @@ const useQuestions = () => {
 
   const addQuestion = async (newQuestion: Question) => {
     try {
-      const response = await fetch("http://localhost:8080/api/questions", {
+      const response = await fetch("http://question-service/api/questions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,7 +70,7 @@ const useQuestions = () => {
   const deleteQuestion = async (questionId: number) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/api/questions/${questionId}`,
+        `http://question-service/api/questions/${questionId}`,
         {
           method: "DELETE",
         }
@@ -117,7 +117,7 @@ const useQuestions = () => {
   ) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/api/questions/${questionId}`,
+        `http://question-service/api/questions/${questionId}`,
         {
           method: "PUT",
           headers: {

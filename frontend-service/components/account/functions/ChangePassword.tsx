@@ -1,14 +1,21 @@
-import { useState } from 'react';
-import { FormControl, FormLabel, Input, Button, Box, useToast } from '@chakra-ui/react';
+import { useState } from "react";
+import {
+  FormControl,
+  FormLabel,
+  Input,
+  Button,
+  Box,
+  useToast,
+} from "@chakra-ui/react";
 
 interface ChangePasswordProps {
   userId: string;
 }
 
 export default function ChangePassword({ userId }: ChangePasswordProps) {
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const toast = useToast();
 
   const handleChangePassword = async (e) => {
@@ -27,20 +34,23 @@ export default function ChangePassword({ userId }: ChangePasswordProps) {
 
     try {
       // Retrieve the JWT token
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
 
       // Send request with oldPassword, newPassword, and confirmPassword
-      const response = await fetch(`http://localhost:3001/users/${userId}/change-password`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ oldPassword, newPassword, confirmPassword }),
-      });
+      const response = await fetch(
+        `http://user-service/users/${userId}/change-password`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ oldPassword, newPassword, confirmPassword }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error((await response.json()).message || 'An error occurred');
+        throw new Error((await response.json()).message || "An error occurred");
       }
 
       const data = await response.json();
@@ -64,7 +74,15 @@ export default function ChangePassword({ userId }: ChangePasswordProps) {
   };
 
   return (
-    <Box maxWidth="400px" margin="auto" mt={8} p={4} borderWidth="1px" borderRadius="md" boxShadow="md">
+    <Box
+      maxWidth="400px"
+      margin="auto"
+      mt={8}
+      p={4}
+      borderWidth="1px"
+      borderRadius="md"
+      boxShadow="md"
+    >
       <form onSubmit={handleChangePassword}>
         <FormControl id="oldPassword" isRequired>
           <FormLabel>Old Password</FormLabel>

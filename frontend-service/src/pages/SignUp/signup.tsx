@@ -34,7 +34,7 @@ const Signup: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/users", {
+      const response = await fetch("http://user-service/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,9 +44,9 @@ const Signup: React.FC = () => {
 
       const data = await response.json();
       if (response.ok) {
-        localStorage.setItem("token", data.data.accessToken)
-        localStorage.setItem("userId", data.data.userId)
-        localStorage.setItem("email", email)
+        localStorage.setItem("token", data.data.accessToken);
+        localStorage.setItem("userId", data.data.userId);
+        localStorage.setItem("email", email);
         // updateAuthStatus(true)
         toast({
           title: "Signup successful!",
@@ -56,7 +56,7 @@ const Signup: React.FC = () => {
           isClosable: true,
           position: "bottom",
         });
-        navigate("/login")
+        navigate("/login");
       } else {
         toast({
           title: "Error",

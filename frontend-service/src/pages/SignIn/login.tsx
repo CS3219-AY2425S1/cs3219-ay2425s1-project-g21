@@ -5,11 +5,11 @@ import signupGraphic from "../../assets/images/signup_graphic.png";
 import { useToast } from "@chakra-ui/react";
 
 interface UserData {
-  id: string
-  username: string
-  email: string
-  isAdmin: boolean
-  mustUpdatePassword: boolean
+  id: string;
+  username: string;
+  email: string;
+  isAdmin: boolean;
+  mustUpdatePassword: boolean;
 }
 
 interface LoginProps {
@@ -27,7 +27,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, updateAuthStatus }) => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3001/auth/login", {
+      const response = await fetch("http://user-service/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,18 +37,18 @@ const Login: React.FC<LoginProps> = ({ onLogin, updateAuthStatus }) => {
 
       const data = await response.json();
       if (response.ok) {
-        localStorage.setItem("token", data.data.accessToken)
-        localStorage.setItem("userId", data.data.userId)
-        localStorage.setItem("email", email)
-        console.log("Stored token:", localStorage.getItem("token"))
-        console.log("Stored userId:", localStorage.getItem("userId"))
-        console.log("Stored email:", localStorage.getItem("email"))
+        localStorage.setItem("token", data.data.accessToken);
+        localStorage.setItem("userId", data.data.userId);
+        localStorage.setItem("email", email);
+        console.log("Stored token:", localStorage.getItem("token"));
+        console.log("Stored userId:", localStorage.getItem("userId"));
+        console.log("Stored email:", localStorage.getItem("email"));
         onLogin(data.data);
         navigate("/questions");
         localStorage.setItem("token", data.data.accessToken);
 
         const verifyResponse = await fetch(
-          "http://localhost:3001/auth/verify-token",
+          "http://user-service/auth/verify-token",
           {
             method: "GET",
             headers: {

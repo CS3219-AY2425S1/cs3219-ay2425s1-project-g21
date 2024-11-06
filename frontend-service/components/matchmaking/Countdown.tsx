@@ -35,7 +35,10 @@ const Countdown: React.FC<CountdownProps> = ({
   // Function to fetch initial waiting time
   const fetchWaitingTime = async () => {
     try {
-      const result = await fetchWithAuth("http://localhost:3002/waiting-time", { method: "GET" });
+      const result = await fetchWithAuth(
+        "http://request-service/waiting-time",
+        { method: "GET" }
+      );
       if (result.waitingTime !== undefined) {
         setSeconds(result.waitingTime); // Set the starting point from the server
       } else {
@@ -55,7 +58,9 @@ const Countdown: React.FC<CountdownProps> = ({
   useEffect(() => {
     intervalRef.current = setInterval(async () => {
       try {
-        const response = await fetchWithAuth("http://localhost:3002/match-status");
+        const response = await fetchWithAuth(
+          "http://request-service/match-status"
+        );
         if (response.matchStatus === "isMatched") {
           clearInterval(intervalRef.current!);
           onSuccess(response.roomId); // Pass the roomId if match found

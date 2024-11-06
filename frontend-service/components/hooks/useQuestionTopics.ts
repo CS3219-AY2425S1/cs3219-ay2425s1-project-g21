@@ -25,7 +25,7 @@ const useQuestionTopics = () => {
     const fetchUsedTopics = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8080/api/questions/topics"
+          "http://question-service/api/questions/topics"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch used topics");

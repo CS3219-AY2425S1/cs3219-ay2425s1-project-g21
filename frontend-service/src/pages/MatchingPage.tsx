@@ -34,12 +34,12 @@ const MatchingPage: React.FC = () => {
   };
 
   const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
 
     if (!token) {
       console.error("No authentication token found. Redirecting to login.");
-      navigate("/login")
-      return
+      navigate("/login");
+      return;
     }
     const headers = {
       "Content-Type": "application/json",
@@ -63,7 +63,7 @@ const MatchingPage: React.FC = () => {
 
   const checkMatchStatus = async () => {
     try {
-      const result = await fetchWithAuth("http://localhost:3002/match-status");
+      const result = await fetchWithAuth("http://request-service/match-status");
       console.log("Match Status:", result.matchStatus);
 
       const matchStatus = result.matchStatus;
@@ -86,9 +86,12 @@ const MatchingPage: React.FC = () => {
   const handleMatchMe = async () => {
     setStage(STAGE.COUNTDOWN);
     try {
-      await fetchWithAuth("http://localhost:3002/find-match", {
+      await fetchWithAuth("http://request-service/find-match", {
         method: "POST",
-        body: JSON.stringify({ topic: selectedTopic, difficulty: selectedDifficulty }),
+        body: JSON.stringify({
+          topic: selectedTopic,
+          difficulty: selectedDifficulty,
+        }),
       });
     } catch (error) {
       console.error("Failed to find match: ", error);
@@ -112,7 +115,9 @@ const MatchingPage: React.FC = () => {
 
   const handleRetry = async () => {
     try {
-      await fetchWithAuth("http://localhost:3002/reset-status", { method: "POST" });
+      await fetchWithAuth("http://request-service/reset-status", {
+        method: "POST",
+      });
     } catch (error) {
       console.error("Failed to reset status: ", error);
     }
@@ -121,7 +126,9 @@ const MatchingPage: React.FC = () => {
 
   const handleCancel = async () => {
     try {
-      await fetchWithAuth("http://localhost:3002/cancel-matching", { method: "POST" });
+      await fetchWithAuth("http://request-service/cancel-matching", {
+        method: "POST",
+      });
     } catch (error) {
       console.error("Failed to cancel matching.");
     }

@@ -1,6 +1,6 @@
-import React from 'react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Button,
   Text,
@@ -18,15 +18,18 @@ import {
   ModalHeader,
   ModalBody,
   Spinner,
-} from '@chakra-ui/react';
+} from "@chakra-ui/react";
 
 interface DeleteAccountProps {
   userId?: string;
   onLogout: () => void;
 }
 
-export default function DeleteAccount({ userId, onLogout }: DeleteAccountProps) {
-  const [message, setMessage] = useState('');
+export default function DeleteAccount({
+  userId,
+  onLogout,
+}: DeleteAccountProps) {
+  const [message, setMessage] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure(); // For delete confirmation
   const {
     isOpen: isRedirectingOpen,
@@ -39,17 +42,17 @@ export default function DeleteAccount({ userId, onLogout }: DeleteAccountProps) 
   const handleDeleteAccount = async () => {
     try {
       // Retrieve the JWT token
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
 
-      const response = await fetch(`http://localhost:3001/users/${userId}`, {
-        method: 'DELETE',
+      const response = await fetch(`http://user-service/users/${userId}`, {
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error((await response.json()).message || 'An error occurred');
+        throw new Error((await response.json()).message || "An error occurred");
       }
 
       const data = await response.json();
@@ -58,7 +61,7 @@ export default function DeleteAccount({ userId, onLogout }: DeleteAccountProps) 
       // Show redirecting popup and wait before logging out and redirecting
       onRedirectingOpen();
       setTimeout(() => {
-        localStorage.removeItem('token');
+        localStorage.removeItem("token");
         onLogout();
         onRedirectingClose();
         navigate("/login");
@@ -70,7 +73,10 @@ export default function DeleteAccount({ userId, onLogout }: DeleteAccountProps) 
 
   return (
     <Box>
-      <Text>Are you sure you want to delete your account? This action cannot be undone.</Text>
+      <Text>
+        Are you sure you want to delete your account? This action cannot be
+        undone.
+      </Text>
       <Button colorScheme="red" onClick={onOpen}>
         Delete Account
       </Button>

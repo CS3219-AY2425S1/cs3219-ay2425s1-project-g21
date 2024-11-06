@@ -1,7 +1,7 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import collaborationRoutes from './src/routes/collaborationRoutes';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import collaborationRoutes from "./src/routes/collaborationRoutes";
 
 dotenv.config();
 
@@ -17,12 +17,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Use the collaboration router to handle requests at http://localhost:5001/room
-app.use('/room', collaborationRoutes);
+app.use("/room", collaborationRoutes);
 
 // Set the server to listen on a specific port
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://collaboration-service:${PORT}`);
 });
 
 export default app;

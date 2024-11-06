@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import CodeEditor from '../../components/collab/CodeEditor';
-import { Box, Button, Spinner, Text } from '@chakra-ui/react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import CodeEditor from "../../components/collab/CodeEditor";
+import { Box, Button, Spinner, Text } from "@chakra-ui/react";
 
 const RoomPage: React.FC = () => {
   const navigate = useNavigate();
-  const [userId] = useState(localStorage.getItem('userId') || '');
+  const [userId] = useState(localStorage.getItem("userId") || "");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -23,7 +23,7 @@ const RoomPage: React.FC = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:5001/room/join", {
+      const response = await fetch("http://collaboration-service/room/join", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,7 +55,12 @@ const RoomPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+      >
         <Spinner size="xl" />
         <Text ml={4}>Attempting to join room...</Text>
       </Box>
@@ -72,11 +77,14 @@ const RoomPage: React.FC = () => {
       )}
 
       {/* Display error message if any */}
-      {error && <Text color="red.500" mb={4}>{error}</Text>}
+      {error && (
+        <Text color="red.500" mb={4}>
+          {error}
+        </Text>
+      )}
 
       {/* Display the Code Editor if joined successfully */}
       {roomId && <CodeEditor roomId={roomId} />}
-
     </Box>
   );
 };

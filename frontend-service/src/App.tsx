@@ -9,21 +9,21 @@ import Home from "./home";
 import Signup from "./pages/SignUp/signup";
 import MatchingPage from "./pages/MatchingPage";
 import { useEffect, useState } from "react";
-import CodeEditor from '../components/collab/CodeEditor';
+import CodeEditor from "../components/collab/CodeEditor";
 import RoomPage from "./pages/RoomPage";
 import AccountPage from "./pages/AccountPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import ChangePassword from "../components/account/functions/ChangePassword"
-import ChangePasswordModal from "../components/account/functions/ChangePasswordModal"
-import DeleteAccount from "../components/account/functions/DeleteAccount"
+import ChangePassword from "../components/account/functions/ChangePassword";
+import ChangePasswordModal from "../components/account/functions/ChangePasswordModal";
+import DeleteAccount from "../components/account/functions/DeleteAccount";
 
 interface UserData {
-  id: string
-  username: string
-  email: string
-  isAdmin: boolean
-  mustUpdatePassword: boolean
+  id: string;
+  username: string;
+  email: string;
+  isAdmin: boolean;
+  mustUpdatePassword: boolean;
 }
 
 function App() {
@@ -31,7 +31,8 @@ function App() {
   const [userIsAdmin, setUserIsAdmin] = useState(false);
   const [userData, setUserData] = useState<UserData | undefined>(undefined);
   const [loading, setLoading] = useState(true);
-  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
+    useState(false);
 
   const updateAuthStatus = (authStatus: boolean, isAdminStatus = false) => {
     setIsAuthenticated(authStatus);
@@ -41,7 +42,7 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      fetch("http://localhost:3001/auth/verify-token", {
+      fetch("http://user-service/auth/verify-token", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -78,14 +79,13 @@ function App() {
     }
   }, []);
 
-
   const handleLoginSuccess = (data: UserData) => {
     setIsAuthenticated(true);
     setUserData(data);
     if (data.mustUpdatePassword) {
       setIsChangePasswordModalOpen(true);
     }
-  }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -99,7 +99,12 @@ function App() {
 
   if (loading) {
     return (
-      <Box display="flex" alignItems="center" justifyContent="center" minHeight="100vh">
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        minHeight="100vh"
+      >
         <Spinner size="xl" />
       </Box>
     );
@@ -109,7 +114,7 @@ function App() {
     <Box className="app" fontFamily="Poppins, sans-serif">
       <HomeNavBar
         isAuthenticated={isAuthenticated}
-        username={userData ? userData.username : ''}
+        username={userData ? userData.username : ""}
         onLogout={handleLogout}
       />
       <Box pt="80px">
@@ -119,9 +124,12 @@ function App() {
             <>
               <Route
                 path="/login"
-                element={<Login
-                  onLogin={handleLoginSuccess}
-                  updateAuthStatus={updateAuthStatus} />}
+                element={
+                  <Login
+                    onLogin={handleLoginSuccess}
+                    updateAuthStatus={updateAuthStatus}
+                  />
+                }
               />
               <Route path="/signup" element={<Signup />} />
             </>
@@ -148,19 +156,34 @@ function App() {
               <Route path="/match-me" element={<MatchingPage />} />
               <Route path="/editor" element={<CodeEditor />} />
               <Route path="/room" element={<RoomPage />} />
-              <Route path="/account" element={<AccountPage
-                username={userData ? userData.username : ''}
-                id={userData ? userData.id : ''}
-                email={userData ? userData.email : ''} />}>
-                <Route path="password" element={<ChangePassword userId={userData?.id} />} />
-                <Route path="delete" element={<DeleteAccount userId={userData?.id} onLogout={handleLogout} />} />
+              <Route
+                path="/account"
+                element={
+                  <AccountPage
+                    username={userData ? userData.username : ""}
+                    id={userData ? userData.id : ""}
+                    email={userData ? userData.email : ""}
+                  />
+                }
+              >
+                <Route
+                  path="password"
+                  element={<ChangePassword userId={userData?.id} />}
+                />
+                <Route
+                  path="delete"
+                  element={
+                    <DeleteAccount
+                      userId={userData?.id}
+                      onLogout={handleLogout}
+                    />
+                  }
+                />
               </Route>
             </>
           ) : (
             <Route path="*" element={<Navigate to="/login" replace />} /> // Redirect authenticated users
           )}
-
-
         </Routes>
       </Box>
       {/* Render the Update Password Modal if required */}

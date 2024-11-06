@@ -20,9 +20,26 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
+          env:
+            - name: VITE_FIREBASE_API_KEY
+              value: "AIzaSyB9UUF76Bz_9GmmylPRviSL_uxsFXfsaJI"
+            - name: VITE_FIREBASE_AUTH_DOMAIN
+              value: "cs3219-g21.firebaseapp.com"
+            - name: VITE_FIREBASE_DATABASE_URL
+              value: "https://cs3219-g21-default-rtdb.asia-southeast1.firebasedatabase.app"
+            - name: VITE_FIREBASE_PROJECT_ID
+              value: "cs3219-g21"
+            - name: VITE_FIREBASE_STORAGE_BUCKET
+              value: "cs3219-g21.appspot.com"
+            - name: VITE_FIREBASE_MESSAGING_SENDER_ID
+              value: "958024239459"
+            - name: VITE_FIREBASE_APP_ID
+              value: "1:958024239459:web:72f1c7396a441127d72b56"
+            - name: VITE_FIREBASE_MEASUREMENT_ID
+              value: "G-RWHNR4RB38"
           resources:
             requests:
-              cpu: "250m"
+              cpu: "200m"
               memory: "512Mi"
             limits:
               cpu: "500m"
@@ -39,6 +56,26 @@ spec:
     app: frontend-service
   ports:
     - protocol: TCP
-      port: 3000
+      port: 80
       targetPort: 3000
   type: LoadBalancer
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: frontend-service-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50

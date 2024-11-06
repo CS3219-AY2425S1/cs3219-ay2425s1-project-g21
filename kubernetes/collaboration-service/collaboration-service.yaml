@@ -75,7 +75,7 @@ spec:
           resources:
             limits:
               cpu: "500m"
-              memory: "1Gi"
+              memory: "128Mi"
 
 ---
 # Service

@@ -4,5 +4,5 @@ import { verifyJWT } from "../middleware/jwt-authentication";
 const router = express.Router();
 
 router.get("/data", verifyJWT, getUserHistory);
-console.log("History routes loaded");
+console.log("Testing");
 export default router;

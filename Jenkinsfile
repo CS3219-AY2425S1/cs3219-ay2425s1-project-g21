@@ -99,8 +99,8 @@ pipeline {
                 }
             }
         }
-
-        post {
+    }
+    post {
             always {
                 echo 'Cleaning up Docker images...'
                 sh 'docker rmi alyssaoyx/history-service:${env.BUILD_ID} || true'
@@ -113,6 +113,4 @@ pipeline {
                 echo 'Pipeline failed. Please check the logs for errors.'
             }
         }
-
-    }
 }

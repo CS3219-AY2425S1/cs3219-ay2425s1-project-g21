@@ -2,15 +2,20 @@ import request from "supertest";
 import express from "express";
 import { getUserHistory, getUserHistoryByCategory } from "./historyController";
 
+// Mock database instance
+const mockDb = {
+  _checkNotDeleted: () => true,
+};
+
 // Create mock functions
 const mockGet = jest.fn();
 const mockRef = jest.fn();
-const mockGetDatabase = jest.fn();
+const mockGetDatabase = jest.fn(() => mockDb);
 
 // Mock the entire firebase/database module
 jest.mock("firebase/database", () => ({
-  get: (...args: any[]) => mockGet(...args),
-  ref: (...args: any[]) => mockRef(...args),
+  get: (...args: any) => mockGet(...args),
+  ref: (...args: any) => mockRef(...args),
   getDatabase: () => mockGetDatabase(),
 }));
 
@@ -26,10 +31,15 @@ describe("History Controller", () => {
     // Reset all mocks before each test
     jest.clearAllMocks();
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
     // Reset the mock implementations
     mockGet.mockReset();
     mockRef.mockReset();
     mockGetDatabase.mockReset();
+
+    // Set up default database mock implementation
+    mockGetDatabase.mockReturnValue(mockDb);
+    mockRef.mockReturnValue("mocked/path");
   });
 
   afterEach(() => {
@@ -58,10 +68,13 @@ describe("History Controller", () => {
         },
       };
 
-      mockGet.mockResolvedValueOnce({
+      // Mock the database response
+      const mockSnapshot = {
         exists: () => true,
         val: () => mockHistoryData,
-      });
+      };
+      mockGet.mockResolvedValueOnce(mockSnapshot);
+      mockRef.mockReturnValueOnce("history/testUser123");
 
       const response = await request(app)
         .post("/getUserHistory")
@@ -91,10 +104,11 @@ describe("History Controller", () => {
     });
 
     it("should return 404 for non-existent user history", async () => {
-      mockGet.mockResolvedValueOnce({
+      const mockSnapshot = {
         exists: () => false,
         val: () => null,
-      });
+      };
+      mockGet.mockResolvedValueOnce(mockSnapshot);
 
       const response = await request(app)
         .post("/getUserHistory")
@@ -150,10 +164,12 @@ describe("History Controller", () => {
         },
       };
 
-      mockGet.mockResolvedValueOnce({
+      // Mock the database response
+      const mockSnapshot = {
         exists: () => true,
         val: () => mockData,
-      });
+      };
+      mockGet.mockResolvedValueOnce(mockSnapshot);
 
       const response = await request(app)
         .post("/getUserHistoryByCategory")
@@ -178,10 +194,12 @@ describe("History Controller", () => {
         },
       };
 
-      mockGet.mockResolvedValueOnce({
+      // Mock the database response
+      const mockSnapshot = {
         exists: () => true,
         val: () => mockData,
-      });
+      };
+      mockGet.mockResolvedValueOnce(mockSnapshot);
 
       const response = await request(app)
         .post("/getUserHistoryByCategory")
@@ -197,10 +215,12 @@ describe("History Controller", () => {
     });
 
     it("should return 404 for invalid category", async () => {
-      mockGet.mockResolvedValueOnce({
+      const mockData = {};
+      const mockSnapshot = {
         exists: () => true,
-        val: () => ({}),
-      });
+        val: () => mockData,
+      };
+      mockGet.mockResolvedValueOnce(mockSnapshot);
 
       const response = await request(app)
         .post("/getUserHistoryByCategory")
@@ -229,10 +249,12 @@ describe("History Controller", () => {
         },
       };
 
-      mockGet.mockResolvedValueOnce({
+      // Mock the database response
+      const mockSnapshot = {
         exists: () => true,
         val: () => mockData,
-      });
+      };
+      mockGet.mockResolvedValueOnce(mockSnapshot);
 
       const response = await request(app)
         .post("/getUserHistoryByCategory")

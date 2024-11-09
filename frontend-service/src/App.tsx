@@ -42,7 +42,7 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      fetch("http://user-service/auth/verify-token", {
+      fetch(`${import.meta.env.VITE_USER_SERVICE_API_URL}/auth/verify-token`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

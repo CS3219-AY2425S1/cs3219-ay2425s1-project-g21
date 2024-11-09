@@ -44,12 +44,15 @@ export default function DeleteAccount({
       // Retrieve the JWT token
       const token = localStorage.getItem("token");
 
-      const response = await fetch(`http://user-service/users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_USER_SERVICE_API_URL}/users/${userId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error((await response.json()).message || "An error occurred");

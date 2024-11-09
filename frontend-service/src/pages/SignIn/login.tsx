@@ -27,13 +27,16 @@ const Login: React.FC<LoginProps> = ({ onLogin, updateAuthStatus }) => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://user-service/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_USER_SERVICE_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const data = await response.json();
       if (response.ok) {
@@ -48,7 +51,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, updateAuthStatus }) => {
         localStorage.setItem("token", data.data.accessToken);
 
         const verifyResponse = await fetch(
-          "http://user-service/auth/verify-token",
+          `${import.meta.env.VITE_USER_SERVICE_API_URL}/auth/verify-token`,
           {
             method: "GET",
             headers: {

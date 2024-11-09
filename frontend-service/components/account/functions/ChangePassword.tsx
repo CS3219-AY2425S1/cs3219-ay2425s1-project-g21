@@ -38,7 +38,9 @@ export default function ChangePassword({ userId }: ChangePasswordProps) {
 
       // Send request with oldPassword, newPassword, and confirmPassword
       const response = await fetch(
-        `http://user-service/users/${userId}/change-password`,
+        `${
+          import.meta.env.VITE_USER_SERVICE_API_URL
+        }/users/${userId}/change-password`,
         {
           method: "PATCH",
           headers: {

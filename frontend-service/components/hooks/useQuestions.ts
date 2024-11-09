@@ -10,7 +10,9 @@ const useQuestions = () => {
 
   const fetchQuestions = async () => {
     try {
-      const response = await fetch("http://question-service/api/questions");
+      const response = await fetch(
+        `${import.meta.env.VITE_QUESTION_SERVICE_API_URL}/api/questions`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch questions");
       }
@@ -29,13 +31,16 @@ const useQuestions = () => {
 
   const addQuestion = async (newQuestion: Question) => {
     try {
-      const response = await fetch("http://question-service/api/questions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newQuestion),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_QUESTION_SERVICE_API_URL}/api/questions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newQuestion),
+        }
+      );
       const data = await response.json();
 
       if (response.ok) {
@@ -70,7 +75,9 @@ const useQuestions = () => {
   const deleteQuestion = async (questionId: number) => {
     try {
       const response = await fetch(
-        `http://question-service/api/questions/${questionId}`,
+        `${
+          import.meta.env.VITE_QUESTION_SERVICE_API_URL
+        }/api/questions/${questionId}`,
         {
           method: "DELETE",
         }
@@ -117,7 +124,9 @@ const useQuestions = () => {
   ) => {
     try {
       const response = await fetch(
-        `http://question-service/api/questions/${questionId}`,
+        `${
+          import.meta.env.VITE_QUESTION_SERVICE_API_URL
+        }/api/questions/${questionId}`,
         {
           method: "PUT",
           headers: {

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, List, ListItem } from "@chakra-ui/react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 interface Question {
   questionId: string;
@@ -21,7 +20,7 @@ const QuestionSideBar: React.FC<QuestionSideBarProps> = ({
 
   useEffect(() => {
     axios
-      .get("http://question-service/api/questions")
+      .get(`${import.meta.env.VITE_QUESTION_SERVICE_API_URL}/api/questions`)
       .then((response) => {
         setQuestions(response.data);
       })

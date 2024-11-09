@@ -34,13 +34,16 @@ const Signup: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://user-service/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, email, password }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_USER_SERVICE_API_URL}/users`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, email, password }),
+        }
+      );
 
       const data = await response.json();
       if (response.ok) {

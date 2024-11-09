@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CodeEditor from "../../components/collab/CodeEditor";
-import { Box, Button, Spinner, Text } from "@chakra-ui/react";
+import { Box, Spinner, Text } from "@chakra-ui/react";
 
 const RoomPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,13 +23,16 @@ const RoomPage: React.FC = () => {
         return;
       }
 
-      const response = await fetch("http://collaboration-service/room/join", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_COLLABORATION_SERVICE_API_URL}/room/join`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await response.json();
 

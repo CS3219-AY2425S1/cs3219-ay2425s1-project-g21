@@ -63,7 +63,9 @@ const MatchingPage: React.FC = () => {
 
   const checkMatchStatus = async () => {
     try {
-      const result = await fetchWithAuth("http://request-service/match-status");
+      const result = await fetchWithAuth(
+        `${import.meta.env.VITE_USER_SERVICE_API_URL}/match-status`
+      );
       console.log("Match Status:", result.matchStatus);
 
       const matchStatus = result.matchStatus;
@@ -86,13 +88,16 @@ const MatchingPage: React.FC = () => {
   const handleMatchMe = async () => {
     setStage(STAGE.COUNTDOWN);
     try {
-      await fetchWithAuth("http://request-service/find-match", {
-        method: "POST",
-        body: JSON.stringify({
-          topic: selectedTopic,
-          difficulty: selectedDifficulty,
-        }),
-      });
+      await fetchWithAuth(
+        `${import.meta.env.VITE_USER_SERVICE_API_URL}/find-match`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            topic: selectedTopic,
+            difficulty: selectedDifficulty,
+          }),
+        }
+      );
     } catch (error) {
       console.error("Failed to find match: ", error);
     }
@@ -115,9 +120,12 @@ const MatchingPage: React.FC = () => {
 
   const handleRetry = async () => {
     try {
-      await fetchWithAuth("http://request-service/reset-status", {
-        method: "POST",
-      });
+      await fetchWithAuth(
+        `${import.meta.env.VITE_USER_SERVICE_API_URL}/reset-status`,
+        {
+          method: "POST",
+        }
+      );
     } catch (error) {
       console.error("Failed to reset status: ", error);
     }
@@ -126,9 +134,12 @@ const MatchingPage: React.FC = () => {
 
   const handleCancel = async () => {
     try {
-      await fetchWithAuth("http://request-service/cancel-matching", {
-        method: "POST",
-      });
+      await fetchWithAuth(
+        `${import.meta.env.VITE_USER_SERVICE_API_URL}/cancel-matching`,
+        {
+          method: "POST",
+        }
+      );
     } catch (error) {
       console.error("Failed to cancel matching.");
     }

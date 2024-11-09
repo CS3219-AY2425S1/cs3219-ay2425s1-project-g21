@@ -20,13 +20,16 @@ const PasswordResetRequest: React.FC = () => {
 
     try {
       // Send request to backend
-      const response = await fetch("http://user-service/users/reset-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ identifier }), // Sending identifier (email or username)
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_USER_SERVICE_API_URL}/users/reset-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ identifier }), // Sending identifier (email or username)
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();

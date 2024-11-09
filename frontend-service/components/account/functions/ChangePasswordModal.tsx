@@ -41,7 +41,9 @@ const ChangePasswordModal: React.FC<UpdatePasswordModalProps> = ({
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://user-service/users/${userId}/force-change-password`,
+        `${
+          import.meta.env.VITE_USER_SERVICE_API_URL
+        }/users/${userId}/force-change-password`,
         {
           method: "PATCH",
           headers: {

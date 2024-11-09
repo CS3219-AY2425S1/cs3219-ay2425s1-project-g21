@@ -114,7 +114,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId }) => {
       }
 
       const response = await axios.post(
-        "http://collaboration-service/room/leaveRoom",
+        `${import.meta.env.VITE_COLLABORATION_SERVICE_API_URL}/room/leaveRoom`,
         { userId },
         {
           headers: {
@@ -128,9 +128,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId }) => {
       setLeaveRoomMessage(response.data.message || "You have left the room.");
 
       // reset matching status once user has left the room
-      await fetchWithAuth("http://matcher-service/reset-status", {
-        method: "POST",
-      });
+      await fetchWithAuth(
+        `${import.meta.env.VITE_MATCHER_SERVICE_API_URL}/reset-status`,
+        {
+          method: "POST",
+        }
+      );
 
       setTimeout(() => {
         navigate("/match-room");
@@ -156,7 +159,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId }) => {
   const handleSelectQuestion = async (questionId: string) => {
     try {
       const response = await axios.get(
-        `http://question-service/api/questions/${questionId}`
+        `${
+          import.meta.env.VITE_QUESTION_SERVICE_API_URL
+        }/api/questions/${questionId}`
       );
       console.log("Fetched question details:", response.data);
       setQuestion(response.data);

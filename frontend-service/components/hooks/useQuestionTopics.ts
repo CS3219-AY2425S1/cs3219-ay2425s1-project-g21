@@ -25,7 +25,9 @@ const useQuestionTopics = () => {
     const fetchUsedTopics = async () => {
       try {
         const response = await fetch(
-          "http://question-service/api/questions/topics"
+          `${
+            import.meta.env.VITE_QUESTION_SERVICE_API_URL
+          }/api/questions/topics`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch used topics");

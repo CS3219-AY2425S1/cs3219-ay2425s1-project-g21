@@ -92,6 +92,7 @@ export const joinOldRoom = async (req: Request, res: Response) => {
   }
 };
 
+// helper function for create room
 function formatTime(unixTime: number): string {
   const date = new Date(unixTime);
 
@@ -103,9 +104,22 @@ function formatTime(unixTime: number): string {
   const mmin = date.getMinutes().toString().padStart(2, "0");
   const ss = date.getSeconds().toString().padStart(2, "0");
 
-  // const res = `${dd}-${mm}-${yyyy}, ${hh}:${mmin}:${ss} UTC`;
   const res = `${mm}-${dd}-${yyyy}, ${hh}:${mmin}:${ss} UTC`;
   return res;
+}
+
+// helper function for leave room
+function formatHistoryTime(msTime: number): string {
+  const total = Math.floor(msTime / 1000); // total number of seconds
+  const sec = total % 60;
+  const min = ((total - sec) % 3600 ) / 60;
+  const hr = (total - sec - min * 60) / 3600;
+
+  const hhh = hr.toString().padStart(3, "0");
+  const mm = min.toString().padStart(2, "0");
+  const ss = sec.toString().padStart(2, "0");
+
+  return `${hhh}h ${mm}m ${ss}s`;
 }
 
 export const createRoom = async (req: Request, res: Response) => {
@@ -153,7 +167,6 @@ export const createRoom = async (req: Request, res: Response) => {
     const currTime = formatTime(Date.now());
     const newRoom: Room = {
       roomId: roomId,
-      // code: "// Enter your code here:",
       code: {
         javascript: "// Start writing your JavaScript code here...",
         python: "# Start writing your Python code here...",
@@ -184,6 +197,8 @@ export const createRoom = async (req: Request, res: Response) => {
       questionTitle: randQuestion.title,
       category: randQuestion.category,
       attemptDateTime: currTime,
+      attemptTimeTaken: "", // empty string means session has not ended
+      attemptTimeStart: Date.now()
     };
 
     const historyRef1 = ref(database, `history/${userId1}/${roomId}`);
@@ -363,18 +378,6 @@ export const leaveRoom = async (req: Request, res: Response) => {
         .json({ message: "User is not a member of this room" });
     }
 
-    /*
-    const updatedUsers = { ...roomData.users };
-    delete updatedUsers[userId]; // remove curr user
-
-    // update room users or set room status to inactive
-    if (Object.keys(updatedUsers).length === 0) {
-      await update(roomRef, { users: updatedUsers, status: "inactive" });
-    } else {
-      await update(roomRef, { users: updatedUsers });
-    }
-      */
-
     const updatedUsers = { ...roomData.users, [userId]: false };
     await update(roomRef, { users: updatedUsers });
 
@@ -396,6 +399,11 @@ export const leaveRoom = async (req: Request, res: Response) => {
     } else {
       console.warn(`Warning: userRooms entry for ${userId} still exists.`);
     }
+
+    const historyRef = ref(database, `history/${userId}/${roomId}`);
+    const historyData = (await get(historyRef)).val() as HistoryModel;
+    const historyTime = formatHistoryTime(Date.now()-historyData.attemptTimeStart)
+    await update(historyRef, { attemptTimeTaken: historyTime});
 
     res.status(200).json({ message: "User has left the room", roomId });
   } catch (error) {

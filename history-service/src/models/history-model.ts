@@ -19,9 +19,11 @@ export enum Topic {
 }
 
 export interface HistoryModel {
-    roomId: string;
-    selectedQuestionId: number;
-    questionTitle: string;
-    category: Topic[];
-    attemptDateTime: string;   
-  }
+  roomId: string;
+  selectedQuestionId: number;
+  questionTitle: string;
+  category: Topic[];
+  attemptDateTime: string;   
+  attemptTimeTaken: string;
+  attemptTimeStart: number;
+}

@@ -36,7 +36,7 @@ const Countdown: React.FC<CountdownProps> = ({
   const fetchWaitingTime = async () => {
     try {
       const result = await fetchWithAuth(
-        `${import.meta.env.VITE_USER_SERVICE_API_URL}/waiting-time`,
+        `${import.meta.env.VITE_REQUEST_SERVICE_API_URL}/waiting-time`,
         { method: "GET" }
       );
       if (result.waitingTime !== undefined) {
@@ -59,7 +59,7 @@ const Countdown: React.FC<CountdownProps> = ({
     intervalRef.current = setInterval(async () => {
       try {
         const response = await fetchWithAuth(
-          `${import.meta.env.VITE_USER_SERVICE_API_URL}/match-status`
+          `${import.meta.env.VITE_REQUEST_SERVICE_API_URL}/match-status`
         );
         if (response.matchStatus === "isMatched") {
           clearInterval(intervalRef.current!);

@@ -31,13 +31,16 @@ const RoomPage: React.FC<RoomPageProps> = ({ userId }) => {
         return;
       }
 
-      const response = await fetch("http://localhost:5001/room/join", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_COLLABORATION_SERVICE_API_URL}/room/join`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await response.json();
 

@@ -47,12 +47,15 @@ const HomePage: React.FC = () => {
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5002/history/data", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_HISTORY_SERVICE_API_URL}/history/data`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         // If the status code is 404, set history to an empty array
         if (response.status === 404) {
@@ -196,16 +199,19 @@ const HomePage: React.FC = () => {
                     </Text>
                   </Td>
                   <Td>
-                    {new Date(question.attemptDateTime).toLocaleString('en-SG', {
-                      timeZone: 'Asia/Singapore',
-                      hour12: false, // or true if you want 12-hour format
-                      year: 'numeric',
-                      month: 'short',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit'
-                    })}
+                    {new Date(question.attemptDateTime).toLocaleString(
+                      "en-SG",
+                      {
+                        timeZone: "Asia/Singapore",
+                        hour12: false, // or true if you want 12-hour format
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      }
+                    )}
                   </Td>
                   <Td>
                     <Box

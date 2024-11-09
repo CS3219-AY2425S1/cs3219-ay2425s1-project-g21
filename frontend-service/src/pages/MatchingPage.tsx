@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDisclosure, Modal, ModalOverlay, ModalContent, ModalBody, Spinner, Text, Box } from "@chakra-ui/react";
+import {
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalBody,
+  Spinner,
+  Text,
+} from "@chakra-ui/react";
 import MatchMe from "../../components/matchmaking/MatchMe";
 import Countdown from "../../components/matchmaking/Countdown";
 import MatchUnsuccess from "../../components/matchmaking/MatchUnsuccess";
@@ -21,7 +29,11 @@ const MatchingPage: React.FC = () => {
   const navigate = useNavigate();
 
   const { isOpen, onOpen, onClose } = useDisclosure(); // Manage modal open/close
-  const { isOpen: isLoadingOpen, onOpen: onLoadingOpen, onClose: onLoadingClose } = useDisclosure(); // Manage loading modal
+  const {
+    isOpen: isLoadingOpen,
+    onOpen: onLoadingOpen,
+    onClose: onLoadingClose,
+  } = useDisclosure(); // Manage loading modal
 
   // Handle modal actions
   const handleSignIn = () => {
@@ -65,7 +77,7 @@ const MatchingPage: React.FC = () => {
   const checkMatchStatus = async () => {
     try {
       const result = await fetchWithAuth(
-        `${import.meta.env.VITE_USER_SERVICE_API_URL}/match-status`
+        `${import.meta.env.VITE_REQUEST_SERVICE_API_URL}/match-status`
       );
       console.log("Match Status:", result.matchStatus);
 
@@ -88,7 +100,7 @@ const MatchingPage: React.FC = () => {
     setStage(STAGE.COUNTDOWN);
     try {
       await fetchWithAuth(
-        `${import.meta.env.VITE_USER_SERVICE_API_URL}/find-match`,
+        `${import.meta.env.VITE_REQUEST_SERVICE_API_URL}/find-match`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -118,7 +130,7 @@ const MatchingPage: React.FC = () => {
   const handleRetry = async () => {
     try {
       await fetchWithAuth(
-        `${import.meta.env.VITE_USER_SERVICE_API_URL}/reset-status`,
+        `${import.meta.env.VITE_REQUEST_SERVICE_API_URL}/reset-status`,
         {
           method: "POST",
         }
@@ -132,7 +144,7 @@ const MatchingPage: React.FC = () => {
   const handleCancel = async () => {
     try {
       await fetchWithAuth(
-        `${import.meta.env.VITE_USER_SERVICE_API_URL}/cancel-matching`,
+        `${import.meta.env.VITE_REQUEST_SERVICE_API_URL}/cancel-matching`,
         {
           method: "POST",
         }
@@ -196,9 +208,17 @@ const MatchingPage: React.FC = () => {
       <Modal isOpen={isLoadingOpen} onClose={() => {}} isCentered>
         <ModalOverlay />
         <ModalContent>
-          <ModalBody display="flex" flexDirection="column" alignItems="center" justifyContent="center" py={6}>
+          <ModalBody
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            py={6}
+          >
             <Spinner size="xl" color="teal.500" mb={4} />
-            <Text fontSize="lg" fontWeight="bold" color="teal.600">Redirecting to the room...</Text>
+            <Text fontSize="lg" fontWeight="bold" color="teal.600">
+              Redirecting to the room...
+            </Text>
           </ModalBody>
         </ModalContent>
       </Modal>

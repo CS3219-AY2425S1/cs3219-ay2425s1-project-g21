@@ -86,6 +86,16 @@ spec:
                 configMapKeyRef:
                   name: frontend-service-config
                   key: VITE_COLLABORATION_SERVICE_API_URL
+            - name: VITE_CHAT_SERVICE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_CHAT_SERVICE_API_URL
+            - name: VITE_HISTORY_SERVICE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_HISTORY_SERVICE_API_URL
           resources:
             requests:
               cpu: "200m"

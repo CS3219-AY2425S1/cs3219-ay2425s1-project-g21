@@ -29,7 +29,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ userId, roomId }) => {
 
   useEffect(() => {
     // Initialize the socket connection only after userId and roomId are set
-    const newSocket = io("http://localhost:4000");
+    const newSocket = io(`${import.meta.env.VITE_CHAT_SERVICE_API_URL}`);
     setSocket(newSocket);
 
     newSocket.emit("join_room", { roomId, userId });
@@ -58,7 +58,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ userId, roomId }) => {
         try {
           // Fetch the username using the /id-to-username/:id endpoint
           const response = await axios.get(
-            `http://localhost:3001/users/id-to-username/${otherUserId}`
+            `${
+              import.meta.env.VITE_USER_SERVICE_API_URL
+            }/users/id-to-username/${otherUserId}`
           );
           const username = response.data.username;
 

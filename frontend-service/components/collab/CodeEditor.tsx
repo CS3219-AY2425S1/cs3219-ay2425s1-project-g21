@@ -17,7 +17,7 @@ import {
 import { FIREBASE_DB } from "../../FirebaseConfig";
 import { ref, onValue, set, get } from "firebase/database";
 import axios from "axios";
-import QuestionSideBar from "./QuestionSidebar";
+import QuestionSideBar from "./QuestionSideBar";
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../../src/utils/fetchWithAuth";
 import { shikiToMonaco } from "@shikijs/monaco";
@@ -76,9 +76,14 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   useEffect(() => {
     const fetchRoomData = async () => {
       try {
-        const response = await axios.get("http://localhost:5001/room/data", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const response = await axios.get(
+          `${import.meta.env.VITE_COLLABORATION_SERVICE_API_URL}/room/data`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
 
         const assignedQuestionId = response.data.selectedQuestionId;
         const roomCreatedAtString = response.data.createdAt; // String format: '09-11-2024, 09:24:51 UTC'
@@ -103,7 +108,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
 
     // const fetchAssignedQn = async (questionId: number) => {
     //   try {
-    //     const response = await axios.get(`http://localhost:8080/api/questions/${questionId}`)
+    //     const response = await axios.get(`${
+    //   import.meta.env.VITE_QUESTION_SERVICE_API_URL
+    // }/api/questions/${questionId}`)
     //     console.log("Fetched question details:", response.data)
     //     // setQuestion(response.data)
     //   } catch (error) {
@@ -253,9 +260,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
       );
 
       setLeaveRoomMessage(response.data.message || "You have left the room.");
-      await fetchWithAuth("http://localhost:3002/reset-status", {
-        method: "POST",
-      });
+      await fetchWithAuth(
+        `${import.meta.env.VITE_REQUEST_SERVICE_API_URL}/reset-status`,
+        {
+          method: "POST",
+        }
+      );
 
       setIsRedirecting(true); // Show redirecting modal
 

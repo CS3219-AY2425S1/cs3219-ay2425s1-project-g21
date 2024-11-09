@@ -19,12 +19,16 @@ const MatchMe: React.FC<MatchMeProps> = ({
   const toast = useToast();
   const [allTopics, setAllTopics] = useState<string[]>([]);
   const [allDifficulties, setAllDifficulties] = useState<string[]>([]);
-  const [filteredDifficulties, setFilteredDifficulties] = useState<string[]>([]);
+  const [filteredDifficulties, setFilteredDifficulties] = useState<string[]>(
+    []
+  );
   const [filteredTopics, setFilteredTopics] = useState<string[]>([]);
 
   // Fetch all topics on mount
   useEffect(() => {
-    fetch('http://localhost:8080/api/questions/topics')
+    fetch(
+      `${import.meta.env.VITE_QUESTION_SERVICE_API_URL}/api/questions/topics`
+    )
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -46,7 +50,11 @@ const MatchMe: React.FC<MatchMeProps> = ({
 
   // Fetch all difficulties on mount
   useEffect(() => {
-    fetch('http://localhost:8080/api/questions/difficulties')
+    fetch(
+      `${
+        import.meta.env.VITE_QUESTION_SERVICE_API_URL
+      }/api/questions/difficulties`
+    )
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -72,7 +80,11 @@ const MatchMe: React.FC<MatchMeProps> = ({
   // Update difficulties based on the selected topic
   useEffect(() => {
     if (selectedTopic) {
-      fetch(`http://localhost:8080/api/questions/difficulties?category=${selectedTopic}`)
+      fetch(
+        `${
+          import.meta.env.VITE_QUESTION_SERVICE_API_URL
+        }/api/questions/difficulties?category=${selectedTopic}`
+      )
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data)) {
@@ -98,7 +110,11 @@ const MatchMe: React.FC<MatchMeProps> = ({
   // Update topics based on the selected difficulty
   useEffect(() => {
     if (selectedDifficulty) {
-      fetch(`http://localhost:8080/api/questions/topics?difficulty=${selectedDifficulty}`)
+      fetch(
+        `${
+          import.meta.env.VITE_QUESTION_SERVICE_API_URL
+        }/api/questions/topics?difficulty=${selectedDifficulty}`
+      )
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data)) {

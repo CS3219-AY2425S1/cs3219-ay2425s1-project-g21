@@ -1,13 +1,17 @@
 import request from "supertest";
 import express from "express";
 import { getUserHistory, getUserHistoryByCategory } from "./historyController";
-import { get, ref, getDatabase } from "firebase/database";
 
-// Mock Firebase modules
+// Create mock functions
+const mockGet = jest.fn();
+const mockRef = jest.fn();
+const mockGetDatabase = jest.fn();
+
+// Mock the entire firebase/database module
 jest.mock("firebase/database", () => ({
-  get: jest.fn(),
-  ref: jest.fn(),
-  getDatabase: jest.fn(),
+  get: (...args: any[]) => mockGet(...args),
+  ref: (...args: any[]) => mockRef(...args),
+  getDatabase: () => mockGetDatabase(),
 }));
 
 const app = express();
@@ -21,12 +25,14 @@ describe("History Controller", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     jest.clearAllMocks();
-    // Spy on console.error
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    // Reset the mock implementations
+    mockGet.mockReset();
+    mockRef.mockReset();
+    mockGetDatabase.mockReset();
   });
 
   afterEach(() => {
-    // Restore console.error after each test
     consoleErrorSpy.mockRestore();
   });
 
@@ -52,7 +58,7 @@ describe("History Controller", () => {
         },
       };
 
-      (get as jest.Mock).mockResolvedValue({
+      mockGet.mockResolvedValueOnce({
         exists: () => true,
         val: () => mockHistoryData,
       });
@@ -63,12 +69,12 @@ describe("History Controller", () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockHistoryData);
-      expect(get).toHaveBeenCalledTimes(1);
+      expect(mockGet).toHaveBeenCalledTimes(1);
     });
 
     it("should handle Firebase errors gracefully", async () => {
       const error = new Error("Firebase connection error");
-      (get as jest.Mock).mockRejectedValue(error);
+      mockGet.mockRejectedValueOnce(error);
 
       const response = await request(app)
         .post("/getUserHistory")
@@ -85,7 +91,7 @@ describe("History Controller", () => {
     });
 
     it("should return 404 for non-existent user history", async () => {
-      (get as jest.Mock).mockResolvedValue({
+      mockGet.mockResolvedValueOnce({
         exists: () => false,
         val: () => null,
       });
@@ -144,7 +150,7 @@ describe("History Controller", () => {
         },
       };
 
-      (get as jest.Mock).mockResolvedValue({
+      mockGet.mockResolvedValueOnce({
         exists: () => true,
         val: () => mockData,
       });
@@ -172,7 +178,7 @@ describe("History Controller", () => {
         },
       };
 
-      (get as jest.Mock).mockResolvedValue({
+      mockGet.mockResolvedValueOnce({
         exists: () => true,
         val: () => mockData,
       });
@@ -190,7 +196,12 @@ describe("History Controller", () => {
       });
     });
 
-    it("should handle invalid category by returning 404", async () => {
+    it("should return 404 for invalid category", async () => {
+      mockGet.mockResolvedValueOnce({
+        exists: () => true,
+        val: () => ({}),
+      });
+
       const response = await request(app)
         .post("/getUserHistoryByCategory")
         .send({
@@ -218,7 +229,7 @@ describe("History Controller", () => {
         },
       };
 
-      (get as jest.Mock).mockResolvedValue({
+      mockGet.mockResolvedValueOnce({
         exists: () => true,
         val: () => mockData,
       });

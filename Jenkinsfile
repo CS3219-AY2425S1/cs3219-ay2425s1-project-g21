@@ -27,15 +27,15 @@ pipeline {
             }
         }
         
-        // stage('Test History Service') {
-        //     steps {
-        //         dir('history-service') {
-        //             sh '''
-        //                 npm test
-        //             '''
-        //         }
-        //     }
-        // }
+        stage('Test History Service') {
+            steps {
+                dir('history-service') {
+                    sh '''
+                        npm test
+                    '''
+                }
+            }
+        }
 
         stage('Build Questions Service') {
             steps {
@@ -104,17 +104,17 @@ pipeline {
         //     }
         // }
     }
-    post {
-        always {
-            echo 'Cleaning up Docker images...'
-            sh 'docker rmi alyssaoyx/history-service:${env.BUILD_ID} || true'
-            sh 'docker rmi alyssaoyx/question-service:${env.BUILD_ID} || true'
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed. Please check the logs for errors.'
-        }
-    }
+    // post {
+    //     always {
+    //         echo 'Cleaning up Docker images...'
+    //         sh 'docker rmi alyssaoyx/history-service:${env.BUILD_ID} || true'
+    //         sh 'docker rmi alyssaoyx/question-service:${env.BUILD_ID} || true'
+    //     }
+    //     success {
+    //         echo 'Pipeline completed successfully!'
+    //     }
+    //     failure {
+    //         echo 'Pipeline failed. Please check the logs for errors.'
+    //     }
+    // }
 }

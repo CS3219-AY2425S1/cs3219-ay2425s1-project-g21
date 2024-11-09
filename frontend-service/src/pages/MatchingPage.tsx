@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDisclosure } from "@chakra-ui/react"; // Import useDisclosure for modal management
+import { useDisclosure, Modal, ModalOverlay, ModalContent, ModalBody, Spinner, Text, Box } from "@chakra-ui/react";
 import MatchMe from "../../components/matchmaking/MatchMe";
 import Countdown from "../../components/matchmaking/Countdown";
 import MatchUnsuccess from "../../components/matchmaking/MatchUnsuccess";
@@ -21,6 +21,7 @@ const MatchingPage: React.FC = () => {
   const navigate = useNavigate();
 
   const { isOpen, onOpen, onClose } = useDisclosure(); // Manage modal open/close
+  const { isOpen: isLoadingOpen, onOpen: onLoadingOpen, onClose: onLoadingClose } = useDisclosure(); // Manage loading modal
 
   // Handle modal actions
   const handleSignIn = () => {
@@ -69,15 +70,13 @@ const MatchingPage: React.FC = () => {
       console.log("Match Status:", result.matchStatus);
 
       const matchStatus = result.matchStatus;
-      if (matchStatus == "isNotMatching") {
+      if (matchStatus === "isNotMatching") {
         setStage(STAGE.MATCHME);
-      } else if (matchStatus == "isMatching") {
+      } else if (matchStatus === "isMatching") {
         setStage(STAGE.COUNTDOWN);
-      } else if (matchStatus == "isMatched") {
-        // console.log("Matched! Room ID:", result.roomId); // TODO: result.roomId does not exist
-        // handleMatchFound(result.roomId);
+      } else if (matchStatus === "isMatched") {
         handleMatchFound();
-      } else if (matchStatus == "unsuccessful") {
+      } else if (matchStatus === "unsuccessful") {
         handleMatchUnsuccess();
       }
     } catch {
@@ -103,15 +102,13 @@ const MatchingPage: React.FC = () => {
     }
   };
 
-  // const handleMatchFound = (roomId: string) => {
-  //   console.error("Room ID:", roomId);
-  //   setStage(STAGE.SUCCESS);
-  //   navigate(`/editor/${roomId}`);
-  // };
-
   const handleMatchFound = () => {
     setStage(STAGE.SUCCESS);
-    navigate("/room");
+    onLoadingOpen(); // Show loading modal
+    setTimeout(() => {
+      onLoadingClose(); // Close loading modal
+      navigate("/room"); // Redirect to room
+    }, 1500); // 1.5-second delay before redirecting
   };
 
   const handleMatchUnsuccess = () => {
@@ -194,6 +191,17 @@ const MatchingPage: React.FC = () => {
         onSignIn={handleSignIn}
         onCancelAuth={handleCancelAuth}
       />
+
+      {/* Loading modal when match is found */}
+      <Modal isOpen={isLoadingOpen} onClose={() => {}} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalBody display="flex" flexDirection="column" alignItems="center" justifyContent="center" py={6}>
+            <Spinner size="xl" color="teal.500" mb={4} />
+            <Text fontSize="lg" fontWeight="bold" color="teal.600">Redirecting to the room...</Text>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

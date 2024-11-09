@@ -114,7 +114,9 @@ const runMatchingAlgorithm = async () => {
         if (matchReqDataA && matchReqDataB) {
           const matchResult = {
             userA: matchReqDataA.userID,
+            userADifficulty: matchReqDataA.difficulty,
             userB: matchReqDataB.userID,
+            userBDifficulty: matchReqDataB.difficulty,
             topic: matchReqDataA.topic,
           };
           console.log(

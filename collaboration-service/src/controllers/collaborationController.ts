@@ -58,6 +58,40 @@ export const joinRoom = async (req: Request, res: Response) => {
   }
 };
 
+export const joinOldRoom = async (req: Request, res: Response) => {
+  try {
+    const userId = req.body.userId;
+    const roomId = req.params.roomId;
+
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Invalid or missing userId." });
+    }
+
+    const roomRef = ref(database, `rooms/${roomId}`);
+    const roomSnapshot = await get(roomRef);
+
+    if (!roomSnapshot.exists()) {
+      return res.status(404).json({ message: "Room does not exist." });
+    }
+
+    // const roomData = roomSnapshot.val() as Room;
+
+    // const updatedUsers = {
+    //   ...roomData.users,
+    //   [userId]: true,
+    // };
+
+    // await update(roomRef, { users: updatedUsers });
+
+    return res
+      .status(200)
+      .json({ message: "Joined room successfully.", roomId });
+  } catch (error) {
+    console.error("Error joining room:", error);
+    return res.status(500).json({ message: "Failed to join room." });
+  }
+};
+
 function formatTime(unixTime: number): string {
   const date = new Date(unixTime);
 
@@ -75,24 +109,24 @@ function formatTime(unixTime: number): string {
 
 export const createRoom = async (req: Request, res: Response) => {
   try {
-    const { userId1, userId2, topic } = req.body;
+    const { userId1, difficulty1, userId2, difficulty2, topic } = req.body;
 
     const questionsByCategory = await fetch(
-      `http://question-service:8080/api/questions/category?category=${topic}`, 
+      `http://question-service:8080/api/questions/filter?category=${topic}&difficulty=${difficulty1}&difficulty=${difficulty2}`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-      });
+      }
+    );
+    // TODO: Question pool should match difficulty
     const questions = await questionsByCategory.json();
 
     if (questions.length === 0) {
-      res.status(404).json(
-        {
-          message: "Cannot find questions on the topic selected."
-        }
-      )
+      res.status(404).json({
+        message: "Cannot find questions on the topic selected.",
+      });
     }
 
     // "random" algorithm to get a random question from the list of questions
@@ -147,8 +181,8 @@ export const createRoom = async (req: Request, res: Response) => {
       roomId: roomId,
       selectedQuestionId: selectedId,
       questionTitle: randQuestion.title,
-      attemptDateTime: currTime, 
-    }
+      attemptDateTime: currTime,
+    };
 
     const historyRef1 = ref(database, `history/${userId1}/${roomId}`);
     await set(historyRef1, newHistory);
@@ -156,7 +190,12 @@ export const createRoom = async (req: Request, res: Response) => {
     const historyRef2 = ref(database, `history/${userId2}/${roomId}`);
     await set(historyRef2, newHistory);
 
-    res.status(201).json({ message: "Room created successfully", roomId });
+    // include randomized question id in create room function
+    res.status(201).json({
+      message: "Room created successfully",
+      roomId,
+      selectedQuestionId: selectedId,
+    });
     console.log(
       `Room ID ${roomId} created for users ${userId1} and ${userId2}`
     );
@@ -190,7 +229,36 @@ export const getRoomData = async (req: Request, res: Response) => {
       res.status(404).json({ message: "Room not found" });
     }
 
-    res.status(200).json(roomSnapshot.val());
+    const roomData = roomSnapshot.val();
+    const selectedQuestionId = roomData.selectedQuestionId;
+
+    return res.status(200).json({ roomData, selectedQuestionId });
+  } catch (error) {
+    console.error("Error fetching room data:", error);
+    res.status(500).json({ message: "Failed to fetch room data" });
+  }
+};
+
+export const getOldRoomData = async (req: Request, res: Response) => {
+  try {
+    const userId = req.body.userId;
+    const roomId = req.params.roomId;
+
+    if (!userId || typeof userId !== "string") {
+      res.status(400).json({ message: "Invalid userId." });
+    }
+
+    const roomRef = ref(database, `rooms/${roomId}`);
+    const roomSnapshot = await get(roomRef);
+
+    if (!roomSnapshot.exists()) {
+      res.status(404).json({ message: "Room not found" });
+    }
+
+    const roomData = roomSnapshot.val();
+    const selectedQuestionId = roomData.selectedQuestionId;
+
+    return res.status(200).json({ roomData, selectedQuestionId });
   } catch (error) {
     console.error("Error fetching room data:", error);
     res.status(500).json({ message: "Failed to fetch room data" });

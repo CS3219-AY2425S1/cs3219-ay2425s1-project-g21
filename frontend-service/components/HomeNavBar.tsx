@@ -8,16 +8,19 @@ import {
   Container,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
-import AccountButton from "./account/AccountButton"
+import AccountButton from "./account/AccountButton";
 
 interface HomeNavBarProps {
-  isAuthenticated: boolean
-  username: string
-  onLogout: () => void
+  isAuthenticated: boolean;
+  username: string;
+  onLogout: () => void;
 }
 
-export default function HomeNavBar({ isAuthenticated, username, onLogout }: HomeNavBarProps) {
-
+export default function HomeNavBar({
+  isAuthenticated,
+  username,
+  onLogout,
+}: HomeNavBarProps) {
   return (
     <Box as="nav" position="fixed" top="0" left="0" right="0" zIndex="1000">
       <Box
@@ -41,18 +44,20 @@ export default function HomeNavBar({ isAuthenticated, username, onLogout }: Home
                   Questions
                 </Button>
               </Link>
-              <Link to="/dashboard">
+              <Link to="/">
                 <Button variant="ghost" fontWeight="bold" mr={86}>
-                  Dashboard
+                  History
                 </Button>
               </Link>
+
               {/* if user is authenticated then show match me button */}
               {isAuthenticated && (
                 <Link to="/match-me">
                   <Button variant="ghost" fontWeight="bold" mr={86}>
                     Match Me
                   </Button>
-                </Link>)}
+                </Link>
+              )}
               <Link to="/aboutus">
                 <Button variant="ghost" fontWeight="bold" mr={86}>
                   About Us
@@ -60,25 +65,24 @@ export default function HomeNavBar({ isAuthenticated, username, onLogout }: Home
               </Link>
 
               {/* Only display login tab if user is not already authenticated */}
-              { !isAuthenticated &&
-              <>
-                <Link to="/login">
-                  <Button variant="ghost" fontWeight="bold" mr={86}>
-                    Login
-                  </Button>
-                </Link>
-              </>
-              }
+              {!isAuthenticated && (
+                <>
+                  <Link to="/login">
+                    <Button variant="ghost" fontWeight="bold" mr={86}>
+                      Login
+                    </Button>
+                  </Link>
+                </>
+              )}
 
               {/* Only display account tab if user is not already authenticated */}
-              { isAuthenticated &&
+              {isAuthenticated && (
                 <AccountButton username={username} onLogout={onLogout} />
-              }
-
+              )}
             </Flex>
           </Flex>
         </Container>
       </Box>
     </Box>
-  )
+  );
 }

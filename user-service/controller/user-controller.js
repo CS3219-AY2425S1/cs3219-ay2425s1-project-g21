@@ -106,6 +106,31 @@ export async function getUser(req, res) {
   }
 }
 
+export async function getUsername(req, res) {
+  try {
+    const { id: userId } = req.params; // Get userId from URL parameters
+
+    console.log(`Retrieving username for user with ID: ${userId}`);
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    // Fetch the user data based on userId
+    const user = await _findUserById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Return the username
+    return res.status(200).json({ username: user.username });
+  } catch (err) {
+    console.error("Error retrieving username:", err);
+    res.status(500).json({ error: "Failed to retrieve username" });
+  }
+}
+
 export async function getAllUsers(req, res) {
   try {
     const users = await _findAllUsers();

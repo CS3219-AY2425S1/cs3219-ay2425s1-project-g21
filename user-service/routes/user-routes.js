@@ -5,6 +5,7 @@ import {
   deleteUser,
   getAllUsers,
   getUser,
+  getUsername,
   resetUserPassword,
   updateUser,
   updateUserPassword,
@@ -22,6 +23,8 @@ router.patch("/:id/privilege", verifyAccessToken, verifyIsAdmin, updateUserPrivi
 router.post("/", createUser);
 
 router.post("/reset-password", resetUserPassword);
+
+router.get("/id-to-username/:id", getUsername);
 
 router.get("/:id", verifyAccessToken, verifyIsOwnerOrAdmin, getUser);
 

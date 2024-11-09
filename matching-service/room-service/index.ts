@@ -10,8 +10,14 @@ const kafkaConsumer = kafka.consumer({ groupId: "room-service" });
 app.use(express.json());
 app.use(cors());
 
-// helper function to create room from collaboration service
-const createRoom = async (userA: string, userB: string, topic: string): Promise<void> => {
+// Helper function to create a room from the collaboration service
+const createRoom = async (
+  userA: string,
+  userADifficulty: string,
+  userB: string,
+  userBDifficulty: string,
+  topic: string
+): Promise<void> => {
   try {
     const response = await fetch(
       "http://collaboration-service:5001/room/createRoom",
@@ -22,7 +28,9 @@ const createRoom = async (userA: string, userB: string, topic: string): Promise<
         },
         body: JSON.stringify({
           userId1: userA,
+          difficulty1: userADifficulty,
           userId2: userB,
+          difficulty2: userBDifficulty,
           topic: topic,
         }),
       }
@@ -31,7 +39,7 @@ const createRoom = async (userA: string, userB: string, topic: string): Promise<
       const data = await response.json();
       const roomId = data.roomId;
       console.log(
-        `Room ID ${roomId} created successfully for users ${userA} and ${userB}.`
+        `Room ID ${roomId} created successfully for users ${userA} (Difficulty: ${userADifficulty}) and ${userB} (Difficulty: ${userBDifficulty}).`
       );
       return roomId;
     } else {
@@ -46,6 +54,7 @@ const createRoom = async (userA: string, userB: string, topic: string): Promise<
   }
 };
 
+// Listens to match found events
 (async () => {
   await kafkaConsumer.connect();
   await kafkaConsumer.subscribe({
@@ -58,14 +67,20 @@ const createRoom = async (userA: string, userB: string, topic: string): Promise<
       if (message.value) {
         try {
           const matchFoundEvent = JSON.parse(message.value.toString());
-          const { userA, userB, topic } = matchFoundEvent;
+          const {
+            userA: userA,
+            userADifficulty,
+            userB: userB,
+            userBDifficulty,
+            topic,
+          } = matchFoundEvent;
 
           console.log(
-            `Received match-found-event between User A: ${userA} and User B: ${userB}`
+            `Received match-found-event between User A: ${userA} (Difficulty: ${userADifficulty}) and User B: ${userB} (Difficulty: ${userBDifficulty})`
           );
 
-          // calling the helper function
-          await createRoom(userA, userB, topic);
+          // Calling the helper function
+          await createRoom(userA, userADifficulty, userB, userBDifficulty, topic);
         } catch (error: any) {
           console.error("Error processing match-found-event:", error.message);
         }

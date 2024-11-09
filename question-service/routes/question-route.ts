@@ -6,27 +6,22 @@ import {
   deleteQuestionById,
   getQuestionById,
   getQuestionsByDifficulty,
-  getQuestionsByCategory
+  getQuestionsByCategory,
+  getFiltered
 } from '../controllers/question-controller';
 import { fetchQuestionDifficulties, fetchQuestionTopics } from '../controllers/question-metadata-controller';
 
 const router = express.Router();
 
-// Routes for the frontend to query for matching parameters
-// router.get('/difficulties', (req, res) => {
-//   res.json(['easy', 'medium', 'hard']);
-// });
-// router.get('/topics', (req, res) => {
-//   res.json(['math', 'english', 'science']);
-// });
 router.get('/difficulties', fetchQuestionDifficulties);
 router.get('/topics', fetchQuestionTopics);
 
 // Routes for the question service
 router.get('/', fetchAllQuestions);
 router.post('/', addQuestion);
-router.get('/filter', getQuestionsByDifficulty);
-router.get('/category', getQuestionsByCategory)
+router.get('/difficulty', getQuestionsByDifficulty);
+router.get('/category', getQuestionsByCategory);
+router.get('/filter', getFiltered);
 router.put('/:id', updateQuestionById);
 router.delete('/:id', deleteQuestionById);
 router.get('/:id', getQuestionById);

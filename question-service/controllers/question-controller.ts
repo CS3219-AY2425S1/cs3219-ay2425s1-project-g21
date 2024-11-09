@@ -159,3 +159,39 @@ export const getQuestionsByCategory = async (
     res.status(500).json({ message: "Failed to get questions", error });
   }
 };
+
+export const getFiltered = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const category = req.query.category as string | undefined;
+  const difficulties = req.query.difficulty as string | string[] | undefined;
+
+  console.log("Category:", category);
+  console.log("Difficulties:", difficulties);
+
+  try {
+    // Convert difficulties to an array if it's a single string
+    const difficultyArray = difficulties ? (Array.isArray(difficulties) ? difficulties : [difficulties]) : undefined;
+
+    // Build the query object dynamically
+    const query: { [key: string]: any } = {};
+    if (category) {
+      query.category = category;
+    }
+    if (difficultyArray) {
+      query.difficulty = { $in: difficultyArray };
+    }
+
+    const questions = await Question.find(query);
+
+    if (questions.length > 0) {
+      res.status(200).json(questions);
+    } else {
+      res.status(404).json({ message: "No questions found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get questions", error });
+  }
+};
+

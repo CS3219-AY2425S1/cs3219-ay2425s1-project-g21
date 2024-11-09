@@ -1,5 +1,4 @@
 services:
-
   frontend-service:
     build: ./frontend-service
     ports:
@@ -130,6 +129,14 @@ services:
       - ./matching-service/room-service:/app
       - /app/node_modules
 
+  chat-service:
+    build:
+      context: ./chat-service
+    ports:
+      - "4000:4000"
+    depends_on:
+      - user-service
+
   kafka:
     image: bitnami/kafka
     ports:
@@ -157,14 +164,11 @@ services:
     depends_on:
       - kafka
 
-
 volumes:
   user-db-data:
     name: user-db-data
   question-db-data:
     name: question-db-data
-
-
 # Notes:
 #
 # Docker Compose will automatically create an internal network where services can resolve each other using their service names.

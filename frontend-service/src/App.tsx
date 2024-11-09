@@ -8,16 +8,18 @@ import Login from "./pages/SignIn/login";
 import Home from "./home";
 import Signup from "./pages/SignUp/signup";
 import MatchingPage from "./pages/MatchingPage";
+import Chat from "../components/chat/ChatComponent";
 import { useEffect, useState } from "react";
 import CodeEditor from "../components/collab/CodeEditor";
-import RoomPage from "./pages/RoomPage";
+import RoomPage from "./pages/Room/RoomPage";
+import OldRoomPage from "./pages/Room/OldRoomPage";
 import AccountPage from "./pages/AccountPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ChangePassword from "../components/account/functions/ChangePassword";
 import ChangePasswordModal from "../components/account/functions/ChangePasswordModal";
 import DeleteAccount from "../components/account/functions/DeleteAccount";
-
+import HomePage from "../components/history/HomePage";
 interface UserData {
   id: string;
   username: string;
@@ -38,6 +40,7 @@ function App() {
     setIsAuthenticated(authStatus);
     setUserIsAdmin(isAdminStatus);
   };
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -51,13 +54,14 @@ function App() {
       })
         .then((response) => response.json())
         .then((data) => {
-          if (data.message == "Token verified") {
+          if (data.message === "Token verified") {
             setIsAuthenticated(true);
             setUserIsAdmin(data.data.isAdmin);
             setUserData(data.data);
             if (data.data.mustUpdatePassword) {
               setIsChangePasswordModalOpen(true);
             }
+            setUserId(data.data.id);
           } else {
             localStorage.removeItem("token");
             setIsAuthenticated(false);
@@ -119,7 +123,7 @@ function App() {
       />
       <Box pt="80px">
         <Routes>
-          {/* Only allow login/signup routes if the user is not authenticated */}
+          {/* Unauthenticated routes */}
           {!isAuthenticated ? (
             <>
               <Route
@@ -137,11 +141,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} /> // Redirect authenticated users
           )}
 
-          {/* Public or authenticated routes */}
-          <Route
-            path="/"
-            element={<QuestionPage userIsAdmin={userIsAdmin} />}
-          />
+          {/* Public routes */}
           <Route path="/home" element={<Home />} />
           <Route
             path="/questions"
@@ -151,11 +151,20 @@ function App() {
           <Route path="/aboutus" element={<AboutUsPage />} />
           <Route path="/forgot-password" element={<ResetPasswordPage />} />
 
+          {/* Authenticated routes */}
           {isAuthenticated ? (
             <>
+              <Route path="/" element={<HomePage />} />
               <Route path="/match-me" element={<MatchingPage />} />
               <Route path="/editor" element={<CodeEditor />} />
-              <Route path="/room" element={<RoomPage />} />
+              <Route
+                path="/room"
+                element={<RoomPage userId={userData?.id} />}
+              />
+              <Route
+                path="/room/:roomId"
+                element={<OldRoomPage userId={userData?.id} />}
+              />
               <Route
                 path="/account"
                 element={
@@ -184,6 +193,8 @@ function App() {
           ) : (
             <Route path="*" element={<Navigate to="/login" replace />} /> // Redirect authenticated users
           )}
+
+          <Route path="/chat" element={<Chat userId={userId || ""} />} />
         </Routes>
       </Box>
       {/* Render the Update Password Modal if required */}

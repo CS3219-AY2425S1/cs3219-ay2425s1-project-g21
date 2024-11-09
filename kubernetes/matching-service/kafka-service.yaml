@@ -76,7 +76,16 @@ spec:
               value: "1"
             - name: KAFKA_CFG_LISTENERS
               value: "PLAINTEXT://:9092"
+            - name: KAFKA_CFG_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka:9092"
             - name: KAFKA_CFG_ZOOKEEPER_CONNECT
               value: "zookeeper:2181"
             - name: ALLOW_PLAINTEXT_LISTENER
               value: "yes"
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"

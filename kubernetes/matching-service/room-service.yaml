@@ -37,8 +37,7 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 3005
-  type: LoadBalancer
-  loadBalancerIP: "34.143.201.10" # Reserved static IP
+  type: ClusterIP
 
 ---
 apiVersion: autoscaling/v2

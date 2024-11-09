@@ -22,21 +22,70 @@ spec:
             - containerPort: 3000
           env:
             - name: VITE_FIREBASE_API_KEY
-              value: "AIzaSyB9UUF76Bz_9GmmylPRviSL_uxsFXfsaJI"
+              valueFrom:
+                secretKeyRef:
+                  name: frontend-service-secrets
+                  key: VITE_FIREBASE_API_KEY
             - name: VITE_FIREBASE_AUTH_DOMAIN
-              value: "cs3219-g21.firebaseapp.com"
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_FIREBASE_AUTH_DOMAIN
             - name: VITE_FIREBASE_DATABASE_URL
-              value: "https://cs3219-g21-default-rtdb.asia-southeast1.firebasedatabase.app"
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_FIREBASE_DATABASE_URL
             - name: VITE_FIREBASE_PROJECT_ID
-              value: "cs3219-g21"
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_FIREBASE_PROJECT_ID
             - name: VITE_FIREBASE_STORAGE_BUCKET
-              value: "cs3219-g21.appspot.com"
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_FIREBASE_STORAGE_BUCKET
             - name: VITE_FIREBASE_MESSAGING_SENDER_ID
-              value: "958024239459"
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_FIREBASE_MESSAGING_SENDER_ID
             - name: VITE_FIREBASE_APP_ID
-              value: "1:958024239459:web:72f1c7396a441127d72b56"
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_FIREBASE_APP_ID
             - name: VITE_FIREBASE_MEASUREMENT_ID
-              value: "G-RWHNR4RB38"
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_FIREBASE_MEASUREMENT_ID
+            - name: VITE_USER_SERVICE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_USER_SERVICE_API_URL
+            - name: VITE_QUESTION_SERVICE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_QUESTION_SERVICE_API_URL
+            - name: VITE_REQUEST_SERVICE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_REQUEST_SERVICE_API_URL
+            - name: VITE_MATCHER_SERVICE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_MATCHER_SERVICE_API_URL
+            - name: VITE_COLLABORATION_SERVICE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-service-config
+                  key: VITE_COLLABORATION_SERVICE_API_URL
           resources:
             requests:
               cpu: "200m"

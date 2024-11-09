@@ -21,11 +21,11 @@ spec:
           ports:
             - containerPort: 3001
           env:
-            - name: DB_LOCAL_URI
+            - name: DB_CLOUD_URI
               valueFrom:
                 configMapKeyRef:
-                  key: DB_LOCAL_URI
                   name: user-service-config
+                  key: DB_CLOUD_URI
             - name: PORT
               valueFrom:
                 configMapKeyRef:
@@ -36,6 +36,11 @@ spec:
                 configMapKeyRef:
                   name: user-service-config
                   key: ENV
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: user-service-secrets
+                  key: JWT_SECRET
           resources:
             limits:
               cpu: "0.5"

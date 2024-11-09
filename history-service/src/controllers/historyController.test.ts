@@ -5,7 +5,6 @@ import { getUserHistory, getUserHistoryByCategory } from "./historyController";
 import { ref, get } from "firebase/database";
 import { HistoryModel } from "../models/history-model";
 
-// Mock Firebase configuration and functions
 jest.mock("../config/firebaseConfig", () => ({
   __esModule: true,
   default: {}, // Mock empty database object

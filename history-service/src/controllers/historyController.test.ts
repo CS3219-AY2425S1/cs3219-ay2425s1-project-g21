@@ -1,61 +1,98 @@
 import request from "supertest";
 import express from "express";
-import { Topic } from "../models/history-model";
 import { getUserHistory, getUserHistoryByCategory } from "./historyController";
-import { HistoryModel } from "../models/history-model";
+import { get, ref, getDatabase } from "firebase/database";
 
-// Create an Express app with the routes
+// Mock Firebase modules
+jest.mock("firebase/database", () => ({
+  get: jest.fn(),
+  ref: jest.fn(),
+  getDatabase: jest.fn(),
+}));
+
 const app = express();
 app.use(express.json());
 app.post("/getUserHistory", getUserHistory);
 app.post("/getUserHistoryByCategory", getUserHistoryByCategory);
 
-// Mock database interaction directly in each controller
-jest.mock("./historyController", () => {
-  const originalModule = jest.requireActual("./historyController");
-
-  return {
-    __esModule: true,
-    ...originalModule,
-    getUserHistory: jest.fn(),
-    getUserHistoryByCategory: jest.fn(),
-  };
-});
-
 describe("History Controller", () => {
-  afterEach(() => {
+  let consoleErrorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    // Reset all mocks before each test
     jest.clearAllMocks();
+    // Spy on console.error
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    // Restore console.error after each test
+    consoleErrorSpy.mockRestore();
   });
 
   describe("getUserHistory", () => {
-    it("should return history data for a valid userId", async () => {
-      const mockData = {
+    it("should return 400 if userId is missing", async () => {
+      const response = await request(app).post("/getUserHistory").send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ message: "Invalid or missing userId." });
+    });
+
+    it("should return 200 and history data for a valid userId", async () => {
+      const mockHistoryData = {
         room1: {
-          category: Topic.ALGORITHMS,
-          question: "What is an algorithm?",
+          category: "ALGORITHMS",
+          question: "What is a binary search?",
+          timestamp: "2024-03-15T10:00:00Z",
+        },
+        room2: {
+          category: "DATA_STRUCTURES",
+          question: "Explain linked lists",
+          timestamp: "2024-03-15T11:00:00Z",
         },
       };
 
-      (getUserHistory as jest.Mock).mockImplementation((req, res) => {
-        res.status(200).json(mockData);
+      (get as jest.Mock).mockResolvedValue({
+        exists: () => true,
+        val: () => mockHistoryData,
       });
 
       const response = await request(app)
         .post("/getUserHistory")
-        .send({ userId: "user123" });
+        .send({ userId: "testUser123" });
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockData);
+      expect(response.body).toEqual(mockHistoryData);
+      expect(get).toHaveBeenCalledTimes(1);
     });
 
-    it("should return 404 if history data is not found", async () => {
-      (getUserHistory as jest.Mock).mockImplementation((req, res) => {
-        res.status(404).json({ message: "History data not found." });
+    it("should handle Firebase errors gracefully", async () => {
+      const error = new Error("Firebase connection error");
+      (get as jest.Mock).mockRejectedValue(error);
+
+      const response = await request(app)
+        .post("/getUserHistory")
+        .send({ userId: "testUser123" });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        message: "Failed to fetch history data",
+      });
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error fetching history data:",
+        error
+      );
+    });
+
+    it("should return 404 for non-existent user history", async () => {
+      (get as jest.Mock).mockResolvedValue({
+        exists: () => false,
+        val: () => null,
       });
 
       const response = await request(app)
         .post("/getUserHistory")
-        .send({ userId: "user123" });
+        .send({ userId: "nonexistentUser" });
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({ message: "History data not found." });
@@ -63,41 +100,138 @@ describe("History Controller", () => {
   });
 
   describe("getUserHistoryByCategory", () => {
-    it("should return history data filtered by category", async () => {
-      const mockData = [
-        {
-          category: [Topic.ALGORITHMS],
-          question: "What is an algorithm?",
-        },
-      ];
-
-      (getUserHistoryByCategory as jest.Mock).mockImplementation((req, res) => {
-        res.status(200).json(mockData);
-      });
-
-      const response = await request(app)
+    it("should validate required parameters", async () => {
+      // Test missing both parameters
+      const noParamsResponse = await request(app)
         .post("/getUserHistoryByCategory")
-        .send({ userId: "user123", category: Topic.ALGORITHMS });
+        .send({});
+      expect(noParamsResponse.status).toBe(400);
+      expect(noParamsResponse.body.message).toBe("Invalid or missing userId.");
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockData);
+      // Test missing category
+      const noCategoryResponse = await request(app)
+        .post("/getUserHistoryByCategory")
+        .send({ userId: "test123" });
+      expect(noCategoryResponse.status).toBe(400);
+      expect(noCategoryResponse.body.message).toBe(
+        "Invalid or missing category."
+      );
+
+      // Test missing userId
+      const noUserIdResponse = await request(app)
+        .post("/getUserHistoryByCategory")
+        .send({ category: "ALGORITHMS" });
+      expect(noUserIdResponse.status).toBe(400);
+      expect(noUserIdResponse.body.message).toBe("Invalid or missing userId.");
     });
 
-    it("should return 404 if no history data in the specified category", async () => {
-      (getUserHistoryByCategory as jest.Mock).mockImplementation((req, res) => {
-        res.status(404).json({
-          message: `No questions found in category '${Topic.ALGORITHMS}'.`,
-        });
+    it("should return filtered history data for valid category", async () => {
+      const mockData = {
+        room1: {
+          category: "ALGORITHMS",
+          question: "What is a binary search?",
+          timestamp: "2024-03-15T10:00:00Z",
+        },
+        room2: {
+          category: "ALGORITHMS",
+          question: "Explain bubble sort",
+          timestamp: "2024-03-15T11:00:00Z",
+        },
+        room3: {
+          category: "DATA_STRUCTURES",
+          question: "What is a stack?",
+          timestamp: "2024-03-15T12:00:00Z",
+        },
+      };
+
+      (get as jest.Mock).mockResolvedValue({
+        exists: () => true,
+        val: () => mockData,
       });
 
       const response = await request(app)
         .post("/getUserHistoryByCategory")
-        .send({ userId: "user123", category: Topic.ALGORITHMS });
+        .send({
+          userId: "testUser123",
+          category: "ALGORITHMS",
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(2);
+      expect(
+        response.body.every((item: any) => item.category === "ALGORITHMS")
+      ).toBe(true);
+    });
+
+    it("should return 404 for category with no questions", async () => {
+      const mockData = {
+        room1: {
+          category: "DATA_STRUCTURES",
+          question: "What is a stack?",
+          timestamp: "2024-03-15T10:00:00Z",
+        },
+      };
+
+      (get as jest.Mock).mockResolvedValue({
+        exists: () => true,
+        val: () => mockData,
+      });
+
+      const response = await request(app)
+        .post("/getUserHistoryByCategory")
+        .send({
+          userId: "testUser123",
+          category: "ALGORITHMS",
+        });
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({
-        message: `No questions found in category '${Topic.ALGORITHMS}'.`,
+        message: "No questions found in category 'ALGORITHMS'.",
       });
+    });
+
+    it("should handle invalid category by returning 404", async () => {
+      const response = await request(app)
+        .post("/getUserHistoryByCategory")
+        .send({
+          userId: "testUser123",
+          category: "INVALID_CATEGORY",
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        message: "No questions found in category 'INVALID_CATEGORY'.",
+      });
+    });
+
+    it("should return results in their original order", async () => {
+      const mockData = {
+        room1: {
+          category: "ALGORITHMS",
+          question: "What is a binary search?",
+          timestamp: "2024-03-15T12:00:00Z",
+        },
+        room2: {
+          category: "ALGORITHMS",
+          question: "Explain bubble sort",
+          timestamp: "2024-03-15T10:00:00Z",
+        },
+      };
+
+      (get as jest.Mock).mockResolvedValue({
+        exists: () => true,
+        val: () => mockData,
+      });
+
+      const response = await request(app)
+        .post("/getUserHistoryByCategory")
+        .send({
+          userId: "testUser123",
+          category: "ALGORITHMS",
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body[0].timestamp).toBe("2024-03-15T12:00:00Z");
     });
   });
 });

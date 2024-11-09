@@ -1,39 +1,34 @@
 import request from "supertest";
 import express from "express";
-import * as questionController from "../controllers/question-controller";
-import Question from "../models/question-model";
+import Question from "../models/question-model"; // Ensure this points to your model path
+import {
+  fetchAllQuestions,
+  addQuestion,
+  getQuestionById,
+  deleteQuestionById,
+} from "./question-controller";
 
-// Mock the Question model
-jest.mock("../models/question-model");
-
+// Sample Express setup
 const app = express();
 app.use(express.json());
-
-// Routes for testing
-app.get("/questions", questionController.fetchAllQuestions);
-app.post("/questions", questionController.addQuestion);
-app.get("/questions/:id", questionController.getQuestionById);
-app.delete("/questions/:id", questionController.deleteQuestionById);
-
-// Sample data for testing
-const sampleQuestion = {
-  questionId: "q1",
-  title: "Sample Question",
-  description: "This is a sample question",
-  category: "General",
-  difficulty: "Easy",
-};
+app.get("/questions", fetchAllQuestions);
+app.post("/questions", addQuestion);
+app.get("/questions/:id", getQuestionById);
+app.delete("/questions/:id", deleteQuestionById);
 
 describe("Question Controller", () => {
   afterEach(() => {
-    jest.clearAllMocks(); // Reset mocks after each test
+    jest.clearAllMocks();
   });
 
   describe("fetchAllQuestions", () => {
     it("should return a list of questions", async () => {
-      (Question.find as unknown as jest.Mock).mockResolvedValue([
-        sampleQuestion,
-      ]);
+      const sampleQuestion = {
+        questionId: "q1",
+        questionText: "What is an algorithm?",
+      };
+
+      jest.spyOn(Question, "find").mockResolvedValue([sampleQuestion] as any);
 
       const response = await request(app).get("/questions");
 
@@ -42,8 +37,7 @@ describe("Question Controller", () => {
     });
 
     it("should return 404 if no questions are found", async () => {
-      // Mock `Question.find` to return an empty array
-      (Question.find as jest.Mock).mockResolvedValue([]);
+      jest.spyOn(Question, "find").mockResolvedValue([] as any);
 
       const response = await request(app).get("/questions");
 
@@ -55,14 +49,14 @@ describe("Question Controller", () => {
   describe("addQuestion", () => {
     it("should add a new question and return it", async () => {
       const newQuestionData = {
-        questionId: "q2",
-        title: "New Question",
-        description: "This is a new question",
-        category: "Math",
+        questionId: "q1",
+        questionText: "What is an algorithm?",
         difficulty: "Medium",
       };
 
-      (Question.prototype.save as jest.Mock).mockResolvedValue(newQuestionData);
+      jest
+        .spyOn(Question.prototype, "save")
+        .mockResolvedValue(newQuestionData as any);
 
       const response = await request(app)
         .post("/questions")
@@ -74,22 +68,26 @@ describe("Question Controller", () => {
 
     it("should return 409 for duplicate question", async () => {
       const error = { code: 11000, keyValue: { questionId: "q1" } };
-      (Question.prototype.save as jest.Mock).mockRejectedValue(error);
+      jest.spyOn(Question.prototype, "save").mockRejectedValue(error as any);
 
       const response = await request(app)
         .post("/questions")
-        .send(sampleQuestion);
+        .send({ questionId: "q1", questionText: "What is an algorithm?" });
 
       expect(response.status).toBe(409);
       expect(response.body).toEqual({
-        message: `Duplicate value for field: questionId.`,
+        message: "Duplicate value for field: questionId.",
       });
     });
   });
 
   describe("getQuestionById", () => {
     it("should return a question by ID", async () => {
-      (Question.findOne as jest.Mock).mockResolvedValue(sampleQuestion);
+      const sampleQuestion = {
+        questionId: "q1",
+        questionText: "What is an algorithm?",
+      };
+      jest.spyOn(Question, "findOne").mockResolvedValue(sampleQuestion as any);
 
       const response = await request(app).get("/questions/q1");
 
@@ -98,7 +96,7 @@ describe("Question Controller", () => {
     });
 
     it("should return 404 if question not found", async () => {
-      (Question.findOne as jest.Mock).mockResolvedValue(null);
+      jest.spyOn(Question, "findOne").mockResolvedValue(null);
 
       const response = await request(app).get("/questions/q99");
 
@@ -109,9 +107,13 @@ describe("Question Controller", () => {
 
   describe("deleteQuestionById", () => {
     it("should delete a question and return success message", async () => {
-      (Question.findOneAndDelete as jest.Mock).mockResolvedValue(
-        sampleQuestion
-      );
+      const sampleQuestion = {
+        questionId: "q1",
+        questionText: "What is an algorithm?",
+      };
+      jest
+        .spyOn(Question, "findOneAndDelete")
+        .mockResolvedValue(sampleQuestion as any);
 
       const response = await request(app).delete("/questions/q1");
 
@@ -122,7 +124,7 @@ describe("Question Controller", () => {
     });
 
     it("should return 404 if question to delete is not found", async () => {
-      (Question.findOneAndDelete as jest.Mock).mockResolvedValue(null);
+      jest.spyOn(Question, "findOneAndDelete").mockResolvedValue(null);
 
       const response = await request(app).delete("/questions/q99");
 

@@ -1,15 +1,19 @@
 pipeline {
-        environment{
-            customImage = ""
-        }
+    environment {
+        customImage = ""
+    }
 
-        agent any 
-        tools {nodejs "nodejs"}
+    agent any 
+    tools {
+        nodejs 'nodejs'
+        docker 'docker'
+    }
 
     stages {
         stage('Clone Repository') {
             steps {
                 checkout scm
+                echo 'Repository cloned successfully'
             }
         }
 
@@ -31,7 +35,7 @@ pipeline {
             steps {
                 sh '''
                     # Navigate to your Node.js app directory
-                    cd questions-service
+                    cd question-service
 
                     # Install dependencies
                     npm install
@@ -59,12 +63,8 @@ pipeline {
 
         stage('Build History Docker Image') {
             steps {
-                // Inside the 'node' container
                 dir('history-service') {
-                    // Change the working directory to 'history-service'
-
                     script {
-                        // Execute your Docker build command here
                         customImage = docker.build("alyssaoyx/history-service:${env.BUILD_ID}")
                     }
                 }
@@ -73,12 +73,8 @@ pipeline {
 
         stage('Build Questions Docker Image') {
             steps {
-                // Inside the 'node' container
                 dir('question-service') {
-                    // Change the working directory to 'question-service'
-
                     script {
-                        // Execute your Docker build command here
                         customImage = docker.build("alyssaoyx/question-service:${env.BUILD_ID}")
                     }
                 }
@@ -88,7 +84,6 @@ pipeline {
         stage('Push Docker Images to Registry') {
             steps {
                 script {
-                    // Log in to Docker Hub using credentials stored in Jenkins
                     withCredentials([usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin'
                     }
@@ -101,16 +96,16 @@ pipeline {
         }
     }
     post {
-            always {
-                echo 'Cleaning up Docker images...'
-                sh 'docker rmi alyssaoyx/history-service:${env.BUILD_ID} || true'
-                sh 'docker rmi alyssaoyx/questions-service:${env.BUILD_ID} || true'
-            }
-            success {
-                echo 'Pipeline completed successfully!'
-            }
-            failure {
-                echo 'Pipeline failed. Please check the logs for errors.'
-            }
+        always {
+            echo 'Cleaning up Docker images...'
+            sh 'docker rmi alyssaoyx/history-service:${env.BUILD_ID} || true'
+            sh 'docker rmi alyssaoyx/question-service:${env.BUILD_ID} || true'
         }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Please check the logs for errors.'
+        }
+    }
 }

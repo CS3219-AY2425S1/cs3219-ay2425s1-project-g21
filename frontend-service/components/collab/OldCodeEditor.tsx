@@ -66,6 +66,25 @@ const OldCodeEditor: React.FC<OldCodeEditorProps> = ({ roomId, thisUserId }) => 
     navigate('/');
   };
 
+  const handleDownloadCurrentCode = () => {
+    const fileExtensionMap: { [key: string]: string } = {
+      javascript: 'js',
+      python: 'py',
+      java: 'java',
+      csharp: 'cs',
+    };
+    const fileExtension = fileExtensionMap[codeLanguage] || 'txt';
+    const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+    const filename = `code.${fileExtension}`;
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Box display="flex" height="100vh">
       <Box width="400px" flexShrink={0} borderRight="1px solid #e2e8f0">
@@ -86,6 +105,7 @@ const OldCodeEditor: React.FC<OldCodeEditorProps> = ({ roomId, thisUserId }) => 
               <option key={lang} value={lang}>{lang.charAt(0).toUpperCase() + lang.slice(1)}</option>
             ))}
           </Select>
+          <Button size="sm" colorScheme="teal" onClick={handleDownloadCurrentCode} mr={3}>Download Code</Button>
           <Button size="sm" colorScheme="blue" onClick={handleLeaveRoom}>Leave Room</Button>
         </Box>
 

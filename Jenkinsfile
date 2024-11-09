@@ -23,7 +23,7 @@ pipeline {
                     npm install
 
                     # Build your Node.js application
-                    npm run dev
+                    npm run build
                 '''
             }
         }
@@ -37,7 +37,7 @@ pipeline {
                     npm install
 
                     # Build your Node.js application
-                    npm run dev
+                    npm run build
                 '''
             }
         }

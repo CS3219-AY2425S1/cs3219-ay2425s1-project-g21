@@ -1,21 +1,21 @@
-import express from 'express';
-import { Kafka } from 'kafkajs';
+import express from "express";
+import { Kafka } from "kafkajs";
 import cors from "cors";
 
 const app = express();
 
-const kafka = new Kafka({ brokers: ['kafka:9092'] });
+const kafka = new Kafka({ brokers: ["kafka:9092"], retry: { retries: 5 } });
 const kafkaProducer = kafka.producer();
-const kafkaConsumer = kafka.consumer({ groupId: 'matcher-service' });
-const dequeueConsumer = kafka.consumer({ groupId: 'matcher-service-dequeue' }); // New consumer for dequeue-events
+const kafkaConsumer = kafka.consumer({ groupId: "matcher-service" });
+const dequeueConsumer = kafka.consumer({ groupId: "matcher-service-dequeue" }); // New consumer for dequeue-events
 
 app.use(express.json());
 app.use(cors());
 
 interface MatchRequestData {
-  userID: string,
-  topic: string,
-  difficulty: string,
+  userID: string;
+  topic: string;
+  difficulty: string;
 }
 
 // Use a Map to store a queue per topic
@@ -26,8 +26,10 @@ const printTopicQueues = () => {
   console.log("Current match requests by topic:");
   for (const [topic, queue] of matchRequestsByTopic.entries()) {
     console.log(`Topic: ${topic}, Queue Length: ${queue.length}`);
-    queue.forEach(request => {
-      console.log(`  - userID: ${request.userID}, difficulty: ${request.difficulty}`);
+    queue.forEach((request) => {
+      console.log(
+        `  - userID: ${request.userID}, difficulty: ${request.difficulty}`
+      );
     });
   }
   console.log("------------------------------------------------");
@@ -36,12 +38,19 @@ const printTopicQueues = () => {
 // Start the Kafka Consumer, listen to match events.
 (async () => {
   await kafkaConsumer.connect();
-  await kafkaConsumer.subscribe({ topic: 'match-events', fromBeginning: false });
+  await kafkaConsumer.subscribe({
+    topic: "match-events",
+    fromBeginning: false,
+  });
 
   await kafkaConsumer.run({
     eachMessage: async ({ message }) => {
-      const matchRequestData: MatchRequestData = message.value ? JSON.parse(message.value.toString()) : {};
-      console.log(`Received match request: ${JSON.stringify(matchRequestData)}`);
+      const matchRequestData: MatchRequestData = message.value
+        ? JSON.parse(message.value.toString())
+        : {};
+      console.log(
+        `Received match request: ${JSON.stringify(matchRequestData)}`
+      );
 
       const { topic } = matchRequestData;
 
@@ -60,20 +69,31 @@ const printTopicQueues = () => {
 // Listen to dequeue events
 (async () => {
   await dequeueConsumer.connect();
-  await dequeueConsumer.subscribe({ topic: 'dequeue-events', fromBeginning: false });
+  await dequeueConsumer.subscribe({
+    topic: "dequeue-events",
+    fromBeginning: false,
+  });
 
   await dequeueConsumer.run({
     eachMessage: async ({ message }) => {
-      const { userID, topic } = message.value ? JSON.parse(message.value.toString()) : {};
-      console.log(`Received dequeue event for userID: ${userID} and topic: ${topic}`);
+      const { userID, topic } = message.value
+        ? JSON.parse(message.value.toString())
+        : {};
+      console.log(
+        `Received dequeue event for userID: ${userID} and topic: ${topic}`
+      );
 
       // Remove the user's match request from the topic-specific queue
       if (matchRequestsByTopic.has(topic)) {
         matchRequestsByTopic.set(
           topic,
-          matchRequestsByTopic.get(topic)?.filter(request => request.userID !== userID) || []
+          matchRequestsByTopic
+            .get(topic)
+            ?.filter((request) => request.userID !== userID) || []
         );
-        console.log(`User ${userID} removed from match queue for topic: ${topic}.`);
+        console.log(
+          `User ${userID} removed from match queue for topic: ${topic}.`
+        );
 
         // Print the current state of the topic queues
         printTopicQueues();
@@ -94,14 +114,18 @@ const runMatchingAlgorithm = async () => {
         if (matchReqDataA && matchReqDataB) {
           const matchResult = {
             userA: matchReqDataA.userID,
+            userADifficulty: matchReqDataA.difficulty,
             userB: matchReqDataB.userID,
+            userBDifficulty: matchReqDataB.difficulty,
             topic: matchReqDataA.topic,
           };
-          console.log(`Match found in topic '${topic}': ${JSON.stringify(matchResult)}`);
+          console.log(
+            `Match found in topic '${topic}': ${JSON.stringify(matchResult)}`
+          );
 
           // Produce a `match-found-event`
           await kafkaProducer.send({
-            topic: 'match-found-events',
+            topic: "match-found-events",
             messages: [{ value: JSON.stringify(matchResult) }],
           });
 
@@ -120,5 +144,5 @@ const runMatchingAlgorithm = async () => {
 })();
 
 app.listen(3003, () => {
-    console.log("Server started on port 3003");
+  console.log("Server started on port 3003");
 });

@@ -1,34 +1,53 @@
 import { useEffect, useState } from "react";
+import { Topic } from "../types";
 
 const useQuestionTopics = () => {
-  const [topics, setTopics] = useState<string[]>([]);
+  const [enumTopics, setEnumTopics] = useState<string[]>([]);
+  const [usedTopics, setUsedTopics] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchTopics = async () => {
+    // Fetch all enum topics
+    try {
+      const allTopics = Object.values(Topic) as string[];
+      setEnumTopics(allTopics);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred while fetching enum topics");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // Fetch only used topics from backend
+    const fetchUsedTopics = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/questions/topics");
+        const response = await fetch(
+          "http://localhost:8080/api/questions/topics"
+        );
         if (!response.ok) {
-          throw new Error("Failed to fetch topics");
+          throw new Error("Failed to fetch used topics");
         }
         const data = await response.json();
         if (!Array.isArray(data)) {
-          throw new Error("Expected an array of topics");
+          throw new Error("Expected an array of used topics");
         }
-        setTopics(data);
+        setUsedTopics(data);
       } catch (error) {
         if (error instanceof Error) {
           setError(error.message);
         } else {
-          setError("An unknown error occurred");
+          setError("An unknown error occurred while fetching used topics");
         }
       }
     };
-    fetchTopics();
+
+    fetchUsedTopics();
   }, []);
 
-  return { topics, error };
+  return { enumTopics, usedTopics, error };
 };
 
 export default useQuestionTopics;
-

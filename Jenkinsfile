@@ -6,106 +6,115 @@ pipeline {
     agent any 
     tools {
         nodejs 'nodejs'
-        docker 'docker'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
                 checkout scm
-                echo 'Repository cloned successfully'
+                echo 'Testing'
             }
         }
 
         stage('Build History Service') {
             steps {
-                sh '''
-                    # Navigate to your Node.js app directory
-                    cd history-service
-
-                    # Install dependencies
-                    npm install
-
-                    # Build your Node.js application
-                    npm run build
-                '''
+                dir('history-service') {
+                    sh '''
+                        npm install
+                        npm run build
+                    '''
+                }
             }
         }
-        stage('Build Questions Service') {
-            steps {
-                sh '''
-                    # Navigate to your Node.js app directory
-                    cd question-service
-
-                    # Install dependencies
-                    npm install
-
-                    # Build your Node.js application
-                    npm run build
-                '''
-            }
-        }
-
-        // stage('Build Frontend') {
+        
+        // stage('Test History Service') {
         //     steps {
-        //         sh '''
-        //             # Navigate to your Node.js app directory
-        //             cd frontend
-
-        //             # Install dependencies
-        //             npm install
-
-        //             # Build your Node.js application
-        //             npm run dev
-        //         '''
+        //         dir('history-service') {
+        //             sh '''
+        //                 npm test
+        //             '''
+        //         }
         //     }
         // }
 
-        stage('Build History Docker Image') {
-            steps {
-                dir('history-service') {
-                    script {
-                        customImage = docker.build("alyssaoyx/history-service:${env.BUILD_ID}")
-                    }
-                }
-            }
-        }
-
-        stage('Build Questions Docker Image') {
+        stage('Build Questions Service') {
             steps {
                 dir('question-service') {
-                    script {
-                        customImage = docker.build("alyssaoyx/question-service:${env.BUILD_ID}")
-                    }
+                    sh '''
+                        npm install
+                        npm run build
+                    '''
                 }
             }
         }
-
-        stage('Push Docker Images to Registry') {
+        
+        stage('Test Questions Service') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin'
-                    }
-
-                    // Push the images
-                    sh "docker push alyssaoyx/history-service:${env.BUILD_ID}"
-                    sh "docker push alyssaoyx/question-service:${env.BUILD_ID}"
+                dir('question-service') {
+                    sh '''
+                        npm test
+                    '''
                 }
             }
         }
+
+        // Optionally, uncomment to build the frontend
+        // stage('Build Frontend') {
+        //     steps {
+        //         dir('frontend') {
+        //             sh '''
+        //                 npm install
+        //                 npm run dev
+        //             '''
+        //         }
+        //     }
+        // }
+
+        // stage('Build History Docker Image') {
+        //     steps {
+        //         dir('history-service') {
+        //             script {
+        //                 withDockerRegistry(credentialsId: 'docker-credentials', url: '') {
+        //                     customImage = docker.build("alyssaoyx/history-service:${BUILD_NUMBER}")
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+
+        // stage('Build Questions Docker Image') {
+        //     steps {
+        //         dir('question-service') {
+        //             script {
+        //                 customImage = docker.build("alyssaoyx/question-service:${env.BUILD_ID}")
+        //             }
+        //         }
+        //     }
+        // }
+
+        // stage('Push Docker Images to Registry') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
+        //                 sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin'
+        //             }
+        //             sh "docker push alyssaoyx/history-service:${env.BUILD_ID}"
+        //             sh "docker push alyssaoyx/question-service:${env.BUILD_ID}"
+        //         }
+        //     }
+        // }
     }
-    post {
-        always {
-            echo 'Cleaning up Docker images...'
-            sh 'docker rmi alyssaoyx/history-service:${env.BUILD_ID} || true'
-            sh 'docker rmi alyssaoyx/question-service:${env.BUILD_ID} || true'
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed. Please check the logs for errors.'
-        }
-    }
+    // post {
+    //     always {
+    //         echo 'Cleaning up Docker images...'
+    //         sh 'docker rmi alyssaoyx/history-service:${env.BUILD_ID} || true'
+    //         sh 'docker rmi alyssaoyx/question-service:${env.BUILD_ID} || true'
+    //     }
+    //     success {
+    //         echo 'Pipeline completed successfully!'
+    //     }
+    //     failure {
+    //         echo 'Pipeline failed. Please check the logs for errors.'
+    //     }
+    // }
 }

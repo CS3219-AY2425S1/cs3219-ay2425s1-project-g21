@@ -82,13 +82,17 @@ const MatchingPage: React.FC = () => {
       console.log("Match Status:", result.matchStatus);
 
       const matchStatus = result.matchStatus;
-      if (matchStatus === "isNotMatching") {
+
+      if (matchStatus === "isNotMatching" && stage !== STAGE.MATCHME) {
         setStage(STAGE.MATCHME);
-      } else if (matchStatus === "isMatching") {
+      } else if (matchStatus === "isMatching" && stage !== STAGE.COUNTDOWN) {
         setStage(STAGE.COUNTDOWN);
-      } else if (matchStatus === "isMatched") {
+      } else if (matchStatus === "isMatched" && stage !== STAGE.SUCCESS) {
         handleMatchFound();
-      } else if (matchStatus === "unsuccessful") {
+      } else if (
+        matchStatus === "unsuccessful" &&
+        stage !== STAGE.UNSUCCESSFUL
+      ) {
         handleMatchUnsuccess();
       }
     } catch {
@@ -120,7 +124,7 @@ const MatchingPage: React.FC = () => {
     setTimeout(() => {
       onLoadingClose(); // Close loading modal
       navigate("/room"); // Redirect to room
-    }, 1500); // 1.5-second delay before redirecting
+    }, 2000); // 2 second delay before redirecting
   };
 
   const handleMatchUnsuccess = () => {
@@ -163,7 +167,7 @@ const MatchingPage: React.FC = () => {
     checkMatchStatus();
     const interval = setInterval(() => {
       checkMatchStatus();
-    }, 2000);
+    }, 500);
     return () => clearInterval(interval);
   }, []);
 

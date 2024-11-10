@@ -24,4 +24,6 @@ export interface HistoryModel {
     questionTitle: string;
     category: Topic[];
     attemptDateTime: string;   
+    attemptTimeTaken: string;
+    attemptTimeStart: number;
   }

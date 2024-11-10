@@ -7,7 +7,7 @@ export const fetchAllQuestions = async (
 ): Promise<void> => {
   try {
     const questions = await Question.find({});
-    if (questions) {
+    if (questions.length > 0) {
       res.status(200).json(questions);
     } else {
       res.status(404).json({ message: "No questions found" });
@@ -39,7 +39,7 @@ export const addQuestion = async (
     if (error.code === 11000) {
       const dup = Object.keys(error.keyValue)[0];
       res.status(409).json({
-        message: `Duplicate value for field: ${dup}.`
+        message: `Duplicate value for field: ${dup}.`,
       });
     } else {
       res.status(500).json({ message: "Failed to create question", error });
@@ -78,7 +78,7 @@ export const updateQuestionById = async (
     if (error.code === 11000) {
       const dup = Object.keys(error.keyValue)[0];
       res.status(409).json({
-        message: `Duplicate value for field: ${dup}.`
+        message: `Duplicate value for field: ${dup}.`,
       });
     } else {
       res.status(500).json({ message: "Failed to update question", error });
@@ -148,7 +148,7 @@ export const getQuestionsByCategory = async (
   const cat = req.query.category;
   console.log("Category:", cat);
   try {
-    const questions = await Question.find({ category: {$in: [cat] } });
+    const questions = await Question.find({ category: { $in: [cat] } });
 
     if (questions.length > 0) {
       res.status(200).json(questions);
@@ -172,7 +172,11 @@ export const getFiltered = async (
 
   try {
     // Convert difficulties to an array if it's a single string
-    const difficultyArray = difficulties ? (Array.isArray(difficulties) ? difficulties : [difficulties]) : undefined;
+    const difficultyArray = difficulties
+      ? Array.isArray(difficulties)
+        ? difficulties
+        : [difficulties]
+      : undefined;
 
     // Build the query object dynamically
     const query: { [key: string]: any } = {};
@@ -194,4 +198,3 @@ export const getFiltered = async (
     res.status(500).json({ message: "Failed to get questions", error });
   }
 };
-

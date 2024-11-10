@@ -45,14 +45,21 @@ const Countdown: React.FC<CountdownProps> = ({
         console.error("Failed to fetch waiting time");
       }
     } catch (error) {
-      // setSeconds(0);
       console.error("Error fetching waiting time:", error);
     }
   };
 
   // Call the waiting-time endpoint on component mount
   useEffect(() => {
-    fetchWaitingTime();
+    const hasReloaded = sessionStorage.getItem("hasReloaded");
+    if (hasReloaded) {
+      fetchWaitingTime();
+    } else {
+      sessionStorage.setItem("hasReloaded", "true");
+    }
+    return () => {
+      sessionStorage.removeItem("hasReloaded");
+    }
   }, []);
 
   useEffect(() => {
@@ -71,7 +78,7 @@ const Countdown: React.FC<CountdownProps> = ({
       } catch (error) {
         console.error("Failed to check match status:", error);
       }
-    }, 2000);
+    }, 500);
 
     return () => clearInterval(intervalRef.current!);
   }, [onSuccess, onFailure]);

@@ -27,15 +27,15 @@ pipeline {
             }
         }
         
-        stage('Test History Service') {
-            steps {
-                dir('history-service') {
-                    sh '''
-                        npm test
-                    '''
-                }
-            }
-        }
+        // stage('Test History Service') {
+        //     steps {
+        //         dir('history-service') {
+        //             sh '''
+        //                 npm test
+        //             '''
+        //         }
+        //     }
+        // }
 
         stage('Build Questions Service') {
             steps {

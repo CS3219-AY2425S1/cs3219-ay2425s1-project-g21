@@ -65,7 +65,7 @@ const MatchingPage: React.FC = () => {
   const checkMatchStatus = async () => {
     try {
       const result = await fetchWithAuth("http://localhost:3002/match-status");
-      console.log("Match Status:", result.matchStatus);
+      // console.log("Match Status:", result.matchStatus);
 
       const matchStatus = result.matchStatus;
       if (matchStatus === "isNotMatching") {
@@ -100,7 +100,7 @@ const MatchingPage: React.FC = () => {
     setTimeout(() => {
       onLoadingClose(); // Close loading modal
       navigate("/room"); // Redirect to room
-    }, 1500); // 1.5-second delay before redirecting
+    }, 2000); // 2 second delay before redirecting
   };
 
   const handleMatchUnsuccess = () => {
@@ -133,7 +133,7 @@ const MatchingPage: React.FC = () => {
     checkMatchStatus();
     const interval = setInterval(() => {
       checkMatchStatus();
-    }, 2000);
+    }, 500);
     return () => clearInterval(interval);
   }, []);
 

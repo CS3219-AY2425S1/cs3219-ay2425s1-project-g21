@@ -110,8 +110,8 @@ const runMatchingAlgorithm = async () => {
         const matchReqDataA = queue.shift();
         const matchReqDataB = queue.shift();
 
-        // Ensure both requests are valid
-        if (matchReqDataA && matchReqDataB) {
+        // Ensure both requests are valid and user IDs are different
+        if (matchReqDataA && matchReqDataB && matchReqDataA.userID !== matchReqDataB.userID) {
           const matchResult = {
             userA: matchReqDataA.userID,
             userADifficulty: matchReqDataA.difficulty,
@@ -131,11 +131,17 @@ const runMatchingAlgorithm = async () => {
 
           // Print the current state of the topic queues
           printTopicQueues();
+        } else {
+          // If user IDs are the same, push the second request back to the queue
+          if (matchReqDataB) {
+            queue.unshift(matchReqDataB);
+          }
         }
       }
     }
   }, 2000);
 };
+
 
 // Start the producer and the continuous matching algorithm
 (async () => {

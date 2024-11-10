@@ -20,6 +20,12 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 3002
+          env:
+            - name: VITE_USER_SERVICE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: request-service-config
+                  key: VITE_USER_SERVICE_API_URL
           resources:
             limits:
               cpu: "500m"

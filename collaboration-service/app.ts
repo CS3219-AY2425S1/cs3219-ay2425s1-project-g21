@@ -8,7 +8,13 @@ dotenv.config();
 const app = express();
 
 // Allow cross-origin requests from your frontend at http://localhost:3000
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  })
+);
 
 // Allow JSON data in the request body to be parsed
 app.use(express.json());

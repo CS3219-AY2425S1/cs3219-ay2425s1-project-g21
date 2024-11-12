@@ -112,7 +112,7 @@ function formatTime(unixTime: number): string {
 function formatHistoryTime(msTime: number): string {
   const total = Math.floor(msTime / 1000); // total number of seconds
   const sec = total % 60;
-  const min = ((total - sec) % 3600 ) / 60;
+  const min = ((total - sec) % 3600) / 60;
   const hr = (total - sec - min * 60) / 3600;
 
   const hhh = hr.toString().padStart(3, "0");
@@ -127,7 +127,7 @@ export const createRoom = async (req: Request, res: Response) => {
     const { userId1, difficulty1, userId2, difficulty2, topic } = req.body;
 
     const questionsByCategory = await fetch(
-      `http://question-service:8080/api/questions/filter?category=${topic}&difficulty=${difficulty1}&difficulty=${difficulty2}`,
+      `${process.env.QUESTION_SERVICE_URI}/api/questions/filter?category=${topic}&difficulty=${difficulty1}&difficulty=${difficulty2}`,
       {
         method: "GET",
         headers: {
@@ -145,9 +145,10 @@ export const createRoom = async (req: Request, res: Response) => {
     }
 
     // "random" algorithm to get a random question from the list of questions
-    const randQuestion = questions[Math.floor(Math.random() * questions.length)];
+    const randQuestion =
+      questions[Math.floor(Math.random() * questions.length)];
     const selectedId = randQuestion.questionId;
-
+    console.log(selectedId);
     const roomId = uuidv4();
 
     const roomRef = ref(database, `rooms/${roomId}`);
@@ -198,7 +199,7 @@ export const createRoom = async (req: Request, res: Response) => {
       category: randQuestion.category,
       attemptDateTime: currTime,
       attemptTimeTaken: "", // empty string means session has not ended
-      attemptTimeStart: Date.now()
+      attemptTimeStart: Date.now(),
     };
 
     const historyRef1 = ref(database, `history/${userId1}/${roomId}`);
@@ -402,8 +403,10 @@ export const leaveRoom = async (req: Request, res: Response) => {
 
     const historyRef = ref(database, `history/${userId}/${roomId}`);
     const historyData = (await get(historyRef)).val() as HistoryModel;
-    const historyTime = formatHistoryTime(Date.now()-historyData.attemptTimeStart)
-    await update(historyRef, { attemptTimeTaken: historyTime});
+    const historyTime = formatHistoryTime(
+      Date.now() - historyData.attemptTimeStart
+    );
+    await update(historyRef, { attemptTimeTaken: historyTime });
 
     res.status(200).json({ message: "User has left the room", roomId });
   } catch (error) {

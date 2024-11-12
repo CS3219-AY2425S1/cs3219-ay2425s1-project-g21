@@ -48,7 +48,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, updateAuthStatus }) => {
         console.log("Stored email:", localStorage.getItem("email"));
         onLogin(data.data);
         navigate("/questions");
-        localStorage.setItem("token", data.data.accessToken);
 
         const verifyResponse = await fetch(
           `${import.meta.env.VITE_USER_SERVICE_API_URL}/auth/verify-token`,

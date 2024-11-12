@@ -1,14 +1,22 @@
 import express from "express";
 import { Kafka } from "kafkajs";
 import cors from "cors";
+import dotenv from "dotenv";
 
+dotenv.config();
 const app = express();
 
 const kafka = new Kafka({ brokers: ["kafka:9092"], retry: { retries: 5 } });
 const kafkaConsumer = kafka.consumer({ groupId: "room-service" });
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  })
+);
 
 // Helper function to create a room from the collaboration service
 const createRoom = async (
@@ -20,7 +28,7 @@ const createRoom = async (
 ): Promise<void> => {
   try {
     const response = await fetch(
-      "http://collaboration-service:5001/room/createRoom",
+      `${process.env.COLLABORATION_SERVICE_API_URL}/room/createRoom`,
       {
         method: "POST",
         headers: {
@@ -35,6 +43,8 @@ const createRoom = async (
         }),
       }
     );
+    console.log(response);
+
     if (response.status === 201) {
       const data = await response.json();
       const roomId = data.roomId;
@@ -80,7 +90,13 @@ const createRoom = async (
           );
 
           // Calling the helper function
-          await createRoom(userA, userADifficulty, userB, userBDifficulty, topic);
+          await createRoom(
+            userA,
+            userADifficulty,
+            userB,
+            userBDifficulty,
+            topic
+          );
         } catch (error: any) {
           console.error("Error processing match-found-event:", error.message);
         }

@@ -89,7 +89,7 @@ const verifyJWT = async (authorizationHeader: string | undefined) => {
 
   try {
     const response = await fetch(
-      `${process.env.VITE_USER_SERVICE_API_URL}/auth/verify-token`,
+      `${process.env.USER_SERVICE_API_URL}/auth/verify-token`,
       {
         method: "GET",
         headers: {

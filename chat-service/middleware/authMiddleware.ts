@@ -1,7 +1,7 @@
 const verifyJWT = async (authorizationHeader) => {
   try {
     const response = await global.fetch(
-      "http://user-service:3001/auth/verify-token",
+      `${process.env.USER_SERVICE_API_URL}/auth/verify-token`,
       {
         method: "GET",
         headers: {

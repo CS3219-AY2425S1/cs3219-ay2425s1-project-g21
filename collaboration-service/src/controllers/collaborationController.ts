@@ -186,7 +186,10 @@ export const createRoom = async (req: Request, res: Response) => {
       createdAt: currTime,
       selectedQuestionId: selectedId,
       status: "active",
-      currentLanguage: "javascript",
+      userLanguages: {
+        [userId1]: "javascript",
+        [userId2]: "javascript",
+      },
     };
 
     await set(roomRef, newRoom);

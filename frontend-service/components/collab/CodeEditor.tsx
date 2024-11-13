@@ -15,9 +15,9 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { FIREBASE_DB } from "../../FirebaseConfig";
-import { ref, onValue, set, get } from "firebase/database";
+import { ref, onValue, set, get, child } from "firebase/database";
 import axios from "axios";
-import QuestionSideBar from "./QuestionSideBar";
+import QuestionSideBar from "./QuestionSidebar";
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../../src/utils/fetchWithAuth";
 import { shikiToMonaco } from "@shikijs/monaco";
@@ -40,10 +40,18 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   // Code editor states
   const [code, setCode] = useState("//Start writing your code here..");
   const [codeLanguage, setCodeLanguage] = useState<string>("javascript");
+
+  const [pendingCodeLanguage, setPendingCodeLanguage] = useState<string | null>(
+    null
+  );
+  const [question, setQuestion] = useState<Question | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const [saveStatus, setSaveStatus] = useState<
     "saved" | "saving" | "typing" | null
   >(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [pendingChangeRequest, setPendingChangeRequest] = useState(false);
   // const [question, setQuestion] = useState<Question | null>(null);
 
   // Room states
@@ -63,7 +71,15 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   // Firebase references
   const usersRef = ref(FIREBASE_DB, `rooms/${roomId}/users`);
   const codeRef = ref(FIREBASE_DB, `rooms/${roomId}/code`);
+
+  const userLanguagesRef = ref(FIREBASE_DB, `rooms/${roomId}/userLanguages`);
+  const languageChangeRequestRef = ref(
+    FIREBASE_DB,
+    `rooms/${roomId}/languageChangeRequest`
+  );
+
   const languageRef = ref(FIREBASE_DB, `rooms/${roomId}/currentLanguage`);
+
   const cancelRef = useRef(null);
   const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
     null
@@ -137,30 +153,30 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     setupSyntaxHighlighting().catch(console.error);
   }, []);
 
-  // Setup code editor
   useEffect(() => {
-    const unsubscribe = onValue(codeRef, (snapshot) => {
-      const updatedCode = snapshot.val();
-      if (updatedCode !== null && updatedCode !== code) {
-        setCode(updatedCode);
-        if (updatedCode !== null && updatedCode[codeLanguage]) {
-          setCode(updatedCode[codeLanguage]);
-        } else {
-          setCode(languageType[codeLanguage]); // Set to default if no snippet is saved
-        }
+    const loadUserLanguage = async () => {
+      const userLanguageSnapshot = await get(
+        child(userLanguagesRef, thisUserId)
+      ); // userLang references userID with language
+      const userLanguage = userLanguageSnapshot.val() || "javascript"; // default lang set as javascript
+      setCodeLanguage(userLanguage);
+
+      // load code snippet
+      const codeSnippetSnapshot = await get(codeRef);
+      const codeSnippets = codeSnippetSnapshot.val();
+      if (codeSnippets && codeSnippets[userLanguage]) {
+        setCode(codeSnippets[userLanguage]);
+      } else {
+        const placeholderCode = languageType[userLanguage];
+        setCode(placeholderCode);
+        await set(
+          ref(FIREBASE_DB, `rooms/${roomId}/code/${userLanguage}`),
+          placeholderCode
+        );
       }
-    });
-    const unsubscribeLanguage = onValue(languageRef, (snapshot) => {
-      const savedLanguage = snapshot.val();
-      if (savedLanguage) {
-        setCodeLanguage(savedLanguage);
-      }
-    });
-    return () => {
-      unsubscribe();
-      unsubscribeLanguage();
     };
-  }, [code, codeLanguage]);
+    loadUserLanguage();
+  }, [thisUserId, roomId]);
 
   // Actions based on whether the other user is present
   useEffect(() => {
@@ -214,7 +230,25 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     });
 
     return () => unsubscribe();
-  }, [code, codeLanguage, codeRef]);
+  }, [code, userLanguagesRef, codeRef]);
+
+  // listen for code changes within current language
+  useEffect(() => {
+    const codeLanguageRef = ref(
+      FIREBASE_DB,
+      `rooms/${roomId}/code/${codeLanguage}`
+    );
+    const unsubscribe = onValue(codeLanguageRef, (snapshot) => {
+      const updatedCode = snapshot.val();
+      if (updatedCode !== null && updatedCode !== code) {
+        setCode(updatedCode);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [codeLanguage, code, roomId]);
 
   // Handle code changes
   const handleEditorChange = async (newValue: string | undefined) => {
@@ -229,6 +263,25 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
       setLastSavedTime(new Date());
     }
   };
+
+  // listen for changes from other users
+  useEffect(() => {
+    const unsubscribe = onValue(languageChangeRequestRef, (snapshot) => {
+      const req = snapshot.val();
+      if (
+        req &&
+        req.requestedBy !== thisUserId &&
+        req.newLanguage !== codeLanguage
+      ) {
+        setPendingCodeLanguage(req.newLanguage);
+        showLanguageChangeToast(req.newLanguage);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [thisUserId, codeLanguage, toast]);
 
   const formatTimeSinceLastSave = () => {
     if (!lastSavedTime) return "";
@@ -293,7 +346,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   ) => {
     const selectedLanguage = event.target.value;
     await set(ref(FIREBASE_DB, `rooms/${roomId}/code/${codeLanguage}`), code);
-    await set(languageRef, selectedLanguage);
+    await set(child(userLanguagesRef, thisUserId), selectedLanguage);
     setCodeLanguage(selectedLanguage);
 
     const codeSnippetsSnapshot = await get(codeRef);
@@ -317,7 +370,93 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
       monaco.editor.setModelLanguage(model, selectedLanguage);
       monacoEditorRef.current.layout();
     }
+
+    await set(languageChangeRequestRef, {
+      requestedBy: thisUserId,
+      newLanguage: selectedLanguage,
+      timestamp: Date.now(),
+    });
   };
+
+  const showLanguageChangeToast = (newLanguage: string) => {
+    if (!newLanguage || pendingChangeRequest) return;
+    setPendingChangeRequest(true);
+
+    toast({
+      position: "top",
+      duration: null,
+      isClosable: true,
+      render: ({ onClose }) => (
+        <Box m={3} color="white" p={3} bg="blue.500" borderRadius="md">
+          <Text fontSize="sm">
+            Your partner wants to change the language to <b>{newLanguage}</b>.
+            Do you accept?
+          </Text>
+          <Button
+            colorScheme="green"
+            size="sm"
+            mr={2}
+            onClick={() => {
+              confirmLanguageChange(newLanguage);
+              setPendingChangeRequest(false);
+              onClose();
+            }}
+          >
+            Yes
+          </Button>
+          <Button
+            colorScheme="red"
+            size="sm"
+            onClick={() => {
+              declineLanguageChange();
+              setPendingChangeRequest(false);
+              onClose();
+            }}
+          >
+            No
+          </Button>
+        </Box>
+      ),
+    });
+  };
+
+  const confirmLanguageChange = async (newLanguage: string) => {
+    await set(ref(FIREBASE_DB, `rooms/${roomId}/code/${codeLanguage}`), code);
+
+    await set(child(userLanguagesRef, thisUserId), newLanguage);
+    setCodeLanguage(newLanguage);
+
+    const codeSnippetsSnapshot = await get(codeRef);
+    const codeSnippets = codeSnippetsSnapshot.val();
+
+    if (codeSnippets && codeSnippets[newLanguage]) {
+      setCode(codeSnippets[newLanguage]);
+    } else {
+      const defaultCode =
+        languageType[newLanguage] || "// Start writing your code here...";
+      setCode(defaultCode);
+      await set(
+        ref(FIREBASE_DB, `rooms/${roomId}/code/${newLanguage}`),
+        defaultCode
+      );
+    }
+
+    if (monacoEditorRef.current) {
+      const model = monacoEditorRef.current.getModel();
+      if (model) {
+        monaco.editor.setModelLanguage(model, newLanguage);
+        monacoEditorRef.current.layout();
+      }
+    }
+    await set(languageChangeRequestRef, {
+      requestedBy: thisUserId,
+      newLanguage,
+      response: "accepted",
+      timestamp: Date.now(),
+    });
+  };
+
+  const declineLanguageChange = () => {};
 
   const handleEditorDidMount: OnMount = (editor) => {
     monacoEditorRef.current = editor;

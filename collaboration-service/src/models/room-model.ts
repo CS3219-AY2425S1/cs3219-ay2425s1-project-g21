@@ -10,5 +10,13 @@ export interface Room {
   createdAt: string;
   selectedQuestionId: number;
   status: "active" | "inactive";
-  currentLanguage: "javascript" | "python" | "csharp" | "java";
+  // currentLanguage: "javascript" | "python" | "csharp" | "java";
+  userLanguages: {
+    [userId: string]: "javascript" | "python" | "csharp" | "java";
+  };
+  languageChangeRequest?: {
+    requestedBy: string;
+    newLanguage: "javascript" | "python" | "csharp" | "java";
+    timestamp: number;
+  };
 }

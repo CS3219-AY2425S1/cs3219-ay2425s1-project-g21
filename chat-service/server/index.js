@@ -5,14 +5,22 @@ const cors = require("cors");
 const verifyJWT = require("../middleware/authMiddleware.js");
 
 const app = express();
-app.use(cors());
 app.use(express.json()); // To parse JSON bodies
+
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   },
 });
 
@@ -53,6 +61,10 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected");
   });
+});
+
+app.get("/", (req, res) => {
+  res.status(200).send("OK");
 });
 
 server.listen(4000, () => {

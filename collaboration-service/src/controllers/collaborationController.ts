@@ -125,6 +125,10 @@ function formatHistoryTime(msTime: number): string {
 export const createRoom = async (req: Request, res: Response) => {
   try {
     const { userId1, difficulty1, userId2, difficulty2, topic } = req.body;
+    console.log(
+      "Requesting questions from:",
+      `${process.env.QUESTION_SERVICE_URI}/api/questions/filter?category=${topic}&difficulty=${difficulty1}&difficulty=${difficulty2}`
+    );
 
     const questionsByCategory = await fetch(
       `${process.env.QUESTION_SERVICE_URI}/api/questions/filter?category=${topic}&difficulty=${difficulty1}&difficulty=${difficulty2}`,
@@ -135,6 +139,7 @@ export const createRoom = async (req: Request, res: Response) => {
         },
       }
     );
+    console.log("Questions by category:", questionsByCategory);
     // TODO: Question pool should match difficulty
     const questions = await questionsByCategory.json();
 

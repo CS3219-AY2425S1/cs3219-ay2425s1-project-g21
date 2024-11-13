@@ -109,68 +109,75 @@ const isValidDifficultyPair = (difficultyA: string, difficultyB: string) => {
     return false;
   }
   return true;
-}
+};
 
 // Continuous function to periodically run the matching algorithm per topic
-  const runMatchingAlgorithm = async () => {
-    setInterval(async () => {
-      for (const [topic, queue] of matchRequestsByTopic.entries()) {
-        let i = 0; // Start from the first request
+const runMatchingAlgorithm = async () => {
+  setInterval(async () => {
+    for (const [topic, queue] of matchRequestsByTopic.entries()) {
+      let i = 0; // Start from the first request
 
-        // Loop through the queue to find matches
-        while (i < queue.length - 1) {
-          const matchReqDataA = queue[i];
-          let matchFound = false;
+      // Loop through the queue to find matches
+      while (i < queue.length - 1) {
+        const matchReqDataA = queue[i];
+        let matchFound = false;
 
-          // Try to find a match for matchReqDataA with every subsequent request
-          for (let j = i + 1; j < queue.length; j++) {
-            const matchReqDataB = queue[j];
+        // Try to find a match for matchReqDataA with every subsequent request
+        for (let j = i + 1; j < queue.length; j++) {
+          const matchReqDataB = queue[j];
 
-            // Ensure both requests are valid, have the same difficulty, and have different userIDs
-            if (
-              matchReqDataA &&
-              matchReqDataB &&
-              isValidDifficultyPair(matchReqDataA.difficulty, matchReqDataB.difficulty) &&
-              matchReqDataA.userID !== matchReqDataB.userID
-            ) {
-              // Match found, remove both from the queue
-              queue.splice(j, 1); // Remove matchReqDataB (adjust index first)
-              queue.splice(i, 1); // Remove matchReqDataA
+          // Ensure both requests are valid, have the same difficulty, and have different userIDs
+          if (
+            matchReqDataA &&
+            matchReqDataB &&
+            isValidDifficultyPair(
+              matchReqDataA.difficulty,
+              matchReqDataB.difficulty
+            ) &&
+            matchReqDataA.userID !== matchReqDataB.userID
+          ) {
+            // Match found, remove both from the queue
+            queue.splice(j, 1); // Remove matchReqDataB (adjust index first)
+            queue.splice(i, 1); // Remove matchReqDataA
 
-              const matchResult = {
-                userA: matchReqDataA.userID,
-                userADifficulty: matchReqDataA.difficulty,
-                userB: matchReqDataB.userID,
-                userBDifficulty: matchReqDataB.difficulty,
-                topic: matchReqDataA.topic,
-                difficulty: matchReqDataA.difficulty,
-              };
+            const matchResult = {
+              userA: matchReqDataA.userID,
+              userADifficulty: matchReqDataA.difficulty,
+              userB: matchReqDataB.userID,
+              userBDifficulty: matchReqDataB.difficulty,
+              topic: matchReqDataA.topic,
+              difficulty: matchReqDataA.difficulty,
+            };
 
-              console.log(`Match found in topic '${topic}' with difficulty '${matchReqDataA.difficulty}': ${JSON.stringify(matchResult)}`);
+            console.log(
+              `Match found in topic '${topic}' with difficulty '${
+                matchReqDataA.difficulty
+              }': ${JSON.stringify(matchResult)}`
+            );
 
-              // Produce a `match-found-event`
-              await kafkaProducer.send({
-                topic: "match-found-events",
-                messages: [{ value: JSON.stringify(matchResult) }],
-              });
+            // Produce a `match-found-event`
+            await kafkaProducer.send({
+              topic: "match-found-events",
+              messages: [{ value: JSON.stringify(matchResult) }],
+            });
 
-              // Print the current state of the topic queues
-              printTopicQueues();
+            // Print the current state of the topic queues
+            printTopicQueues();
 
-              // Set the flag to indicate a match was found and break the inner loop
-              matchFound = true;
-              break;
-            }
-          }
-
-          // If no match was found for matchReqDataA, move to the next request
-          if (!matchFound) {
-            i++;
+            // Set the flag to indicate a match was found and break the inner loop
+            matchFound = true;
+            break;
           }
         }
+
+        // If no match was found for matchReqDataA, move to the next request
+        if (!matchFound) {
+          i++;
+        }
       }
-    }, 2000);
-  };
+    }
+  }, 2000);
+};
 
 // Start the producer and the continuous matching algorithm
 (async () => {

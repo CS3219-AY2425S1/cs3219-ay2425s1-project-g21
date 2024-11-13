@@ -43,8 +43,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   const [codeLanguage, setCodeLanguage] = useState<string>('javascript');
 
   const [pendingCodeLanguage, setPendingCodeLanguage] = useState<string | null>(null);
-  const [question, setQuestion] = useState<Question | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'typing' | null>(null);
   const [isReadOnly, setIsReadOnly] = useState(false);

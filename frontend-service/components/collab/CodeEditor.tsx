@@ -41,12 +41,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   // Code editor states
   const [code, setCode] = useState('//Start writing your code here..');
   const [codeLanguage, setCodeLanguage] = useState<string>('javascript');
-  
+
   const [pendingCodeLanguage, setPendingCodeLanguage] = useState<string | null>(null);
-  const [leaveRoomMessage, setLeaveRoomMessage] = useState<string | null>(null);
   const [question, setQuestion] = useState<Question | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false); // New state
 
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'typing' | null>(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
@@ -426,7 +424,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     const fileExtension = fileExtensionMap[codeLanguage] || 'txt';
     const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
     const filename = `code.${fileExtension}`;
-    
+
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = filename;

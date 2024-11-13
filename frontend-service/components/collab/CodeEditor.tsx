@@ -37,30 +37,48 @@ interface CodeEditorProps {
 }
 
 const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
+
+  // Code editor states
   const [code, setCode] = useState('//Start writing your code here..');
   const [codeLanguage, setCodeLanguage] = useState<string>('javascript');
+  
   const [pendingCodeLanguage, setPendingCodeLanguage] = useState<string | null>(null);
   const [leaveRoomMessage, setLeaveRoomMessage] = useState<string | null>(null);
   const [question, setQuestion] = useState<Question | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false); // New state
+
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'typing' | null>(null);
-  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [pendingChangeRequest, setPendingChangeRequest] = useState(false);
+  // const [question, setQuestion] = useState<Question | null>(null);
 
-  const toast = useToast(); // Initialize Chakra UI toast
+  // Room states
+  const [leaveRoomMessage, setLeaveRoomMessage] = useState<string | null>(null);
+  const [isLeaveRoomDialogOpen, setIsLeaveRoomDialogOpen] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  const [roomCreatedAt, setRoomCreatedAt] = useState<Date | null>(null);
+  const [timeElapsed, setTimeElapsed] = useState<string>('0s');
+
   const previousUsersCount = useRef<number>(0);
   const [activeUserCount, setActiveUserCount] = useState(0);
-  const [assignedQuestionId, setAssignedQuestionId] = useState<number | null>(null)
+  const [assignedQuestionId, setAssignedQuestionId] = useState<number | null>(null);
 
+  // Firebase references
   const usersRef = ref(FIREBASE_DB, `rooms/${roomId}/users`);
   const codeRef = ref(FIREBASE_DB, `rooms/${roomId}/code`);
+
   const userLanguagesRef = ref(FIREBASE_DB, `rooms/${roomId}/userLanguages`);
   const languageChangeRequestRef = ref(FIREBASE_DB, `rooms/${roomId}/languageChangeRequest`);
 
+
+  const languageRef = ref(FIREBASE_DB, `rooms/${roomId}/currentLanguage`);
+
   const cancelRef = useRef(null);
   const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+
+  const toast = useToast();
   const navigate = useNavigate();
 
   // create a use effect for fetching of question id assigned to users in the room
@@ -72,12 +90,18 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
         });
 
         const assignedQuestionId = response.data.selectedQuestionId;
+        const roomCreatedAtString = response.data.createdAt; // String format: '09-11-2024, 09:24:51 UTC'
+        if (roomCreatedAtString) {
+          const createdAtDate = new Date(Date.parse(roomCreatedAtString));
+          console.log("Room created at:", createdAtDate);
+          setRoomCreatedAt(createdAtDate);
+        }
         console.log("Fetched room data:", response.data);
         console.log("Selected Question ID from room data:", assignedQuestionId);
 
         if (assignedQuestionId) {
           setAssignedQuestionId(assignedQuestionId);
-          fetchAssignedQn(assignedQuestionId);
+          // fetchAssignedQn(assignedQuestionId);
         } else {
           console.error("No selectedQuestionId found in room data");
         }
@@ -86,19 +110,20 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
       }
     };
 
-    const fetchAssignedQn = async (questionId: number) => {
-      try {
-        const response = await axios.get(`http://localhost:8080/api/questions/${questionId}`)
-        console.log("Fetched question details:", response.data)
-        setQuestion(response.data)
-      } catch (error) {
-        console.error("Failed to fetch question details:", error)
-      }
-    }
+    // const fetchAssignedQn = async (questionId: number) => {
+    //   try {
+    //     const response = await axios.get(`http://localhost:8080/api/questions/${questionId}`)
+    //     console.log("Fetched question details:", response.data)
+    //     // setQuestion(response.data)
+    //   } catch (error) {
+    //     console.error("Failed to fetch question details:", error)
+    //   }
+    // }
 
     fetchRoomData();
   }, [roomId]);
 
+  // Setup syntax highlighting
   useEffect(() => {
     const setupSyntaxHighlighting = async () => {
       const highlighter = await createHighlighter({
@@ -114,7 +139,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     setupSyntaxHighlighting().catch(console.error);
   }, []);
 
-  // load user's language preference and code, default is javascript
   useEffect(() => {
     const loadUserLanguage = async () => {
       const userLanguageSnapshot = await get(child(userLanguagesRef, thisUserId)) // userLang references userID with language
@@ -135,6 +159,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     loadUserLanguage()
   }, [thisUserId, roomId])
 
+  // Actions based on whether the other user is present
   useEffect(() => {
     const unsubscribe = onValue(usersRef, (snapshot) => {
       const users = snapshot.val();
@@ -171,6 +196,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     };
   }, [toast]);
 
+  // Show save state of the code
   useEffect(() => {
     // Listen to Firebase database changes to confirm save status
     const unsubscribe = onValue(codeRef, (snapshot) => {
@@ -199,6 +225,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     };
   }, [codeLanguage, code, roomId])
 
+  // Handle code changes
   const handleEditorChange = async (newValue: string | undefined) => {
     if (newValue !== undefined) {
       setCode(newValue);
@@ -260,7 +287,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   };
 
   const handleConfirmLeave = () => {
-    setIsDialogOpen(false);
+    setIsLeaveRoomDialogOpen(false);
     handleLeaveRoom();
   };
 
@@ -389,70 +416,124 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     editor.layout();
   };
 
+  const handleDownloadCurrentCode = () => {
+    const fileExtensionMap: { [key: string]: string } = {
+      javascript: 'js',
+      python: 'py',
+      java: 'java',
+      csharp: 'cs',
+    };
+    const fileExtension = fileExtensionMap[codeLanguage] || 'txt';
+    const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+    const filename = `code.${fileExtension}`;
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  useEffect(() => {
+    if (roomCreatedAt) {
+      const interval = setInterval(() => {
+        const now = new Date();
+        const timeDifference = Math.floor((now.getTime() - roomCreatedAt.getTime()) / 1000);
+
+        const hours = Math.floor(timeDifference / 3600);
+        const minutes = Math.floor((timeDifference % 3600) / 60);
+        const seconds = timeDifference % 60;
+
+        setTimeElapsed(
+          `${hours > 0 ? `${hours}h ` : ''}${minutes > 0 ? `${minutes}m ` : ''}${seconds}s`
+        );
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [roomCreatedAt]);
+
   return (
     <Box display="flex" height="100vh">
-      <Box width="500px" flexShrink={0} borderRight="1px solid #e2e8f0">
+      {/* Sidebar for user status and question details */}
+      <Box width="400px" flexShrink={0} borderRight="1px solid #e2e8f0" p={4} bg="gray.100">
         <Box
-          mt={4}
-          p={2}
-          border="1px solid #e2e8f0"
+          mb={4}
+          p={3}
           borderRadius="md"
           bg={activeUserCount > 0 ? 'green.100' : 'orange.100'}
+          border="1px solid"
+          borderColor={activeUserCount > 0 ? 'green.300' : 'orange.300'}
         >
-          <Text fontSize="md" color={activeUserCount > 0 ? 'green.700' : 'orange.700'}>
-            {activeUserCount > 0 ? (
-              'Your partner is in the room.'
-            ) : (
-              <>
-                You are the only user in the room. <br />
-                <Text as="span" fontWeight="bold">The editor is now read-only.</Text>
-              </>
-            )}
+          <Text fontSize="md" fontWeight="bold" color={activeUserCount > 0 ? 'green.700' : 'orange.700'}>
+            {activeUserCount > 0 ? 'Your partner is in the room.' : 'You are the only user in the room.'}
           </Text>
+          {activeUserCount === 0 && (
+            <Text fontSize="sm" mt={1} color="orange.600">
+              The editor is now read-only.
+            </Text>
+          )}
+          <Box>
+            {roomCreatedAt && (
+              <Text fontSize="sm" color="blue.700" mt={1}>
+                Room Active Time: {timeElapsed}
+              </Text>
+            )}
+          </Box>
         </Box>
-        {/* display question details of assigned question */}
+
         {assignedQuestionId ? (
-          <QuestionSideBar assignedQuestionId={assignedQuestionId.toString()} userId={thisUserId} roomId={roomId} isOld={false} />
+          <QuestionSideBar
+            assignedQuestionId={assignedQuestionId.toString()}
+            userId={thisUserId}
+            roomId={roomId}
+            isOld={false}
+          />
         ) : (
-          <Text color="red.500">Loading question...</Text>
+          <Text color="red.500" fontSize="sm">Loading question...</Text>
         )}
       </Box>
-      <Box
-        flex="1"
-        maxWidth="900px"
-        margin="auto"
-        mt={4}
-        p={4}
-        borderRadius="8px"
-        border="1px solid #e2e8f0"
-        bg="gray.50"
-      >
 
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={3} p={2} borderBottom="1px solid #e2e8f0">
-          <Text fontSize="lg" fontWeight="bold" color="gray.700">Code Editor</Text>
+      {/* Main editor container */}
+      <Box flex="1" display="flex" flexDirection="column" p={4} bg="white">
+        <Text fontSize="lg" fontWeight="bold" color="gray.700">Code Editor</Text>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          mb={4}
+          p={3}
+          borderRadius="md"
+          border="1px solid #e2e8f0"
+          bg="gray.50"
+        >
+
           <Box display="flex" alignItems="center">
-            <Box display="flex" alignItems="center">
-              {saveStatus === 'saved' && (
-                <Text color="green.500" fontSize="sm">Saved</Text>
-              )}
-              {saveStatus === 'saving' && (
-                <Text color="orange.500" fontSize="sm">Saving...</Text>
-              )}
-              {saveStatus === 'typing' && (
-                <Text color="gray.500" fontSize="sm">{formatTimeSinceLastSave()}</Text>
-              )}
-            </Box>
+            {saveStatus && (
+              <Text
+                fontSize="sm"
+                mr={3}
+                color={
+                  saveStatus === 'saved' ? 'green.500' : saveStatus === 'saving' ? 'orange.500' : 'gray.500'
+                }
+              >
+                {saveStatus === 'saved' ? 'Saved' : saveStatus === 'saving' ? 'Saving...' : formatTimeSinceLastSave()}
+              </Text>
+            )}
+
             <Select size="sm" width="150px" mr={3} value={codeLanguage} onChange={handleLanguageChange}>
               {Object.keys(languageType).map(lang => (
                 <option key={lang} value={lang}>{lang.charAt(0).toUpperCase() + lang.slice(1)}</option>
               ))}
             </Select>
-            <Button size="sm" colorScheme="red" mr={3} onClick={() => setIsDialogOpen(true)}>Leave Room</Button>
-            <Button size="sm" colorScheme="gray" onClick={handleResetCode}>Reset</Button>
+            <Button size="sm" colorScheme="gray" onClick={handleResetCode} mr={2}>Reset</Button>
+            <Button size="sm" colorScheme="teal" onClick={handleDownloadCurrentCode} mr={2}>Download Code</Button>
+            <Button size="sm" colorScheme="red" onClick={() => setIsLeaveRoomDialogOpen(true)}>Leave Room</Button>
           </Box>
         </Box>
 
-        <Box height="80vh" borderRadius="8px" width="100%" overflow="hidden">
+        <Box flex="1" borderRadius="md" border="1px solid #e2e8f0" overflow="hidden">
           <MonacoEditor
             height="100%"
             language={codeLanguage}
@@ -470,15 +551,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
           />
         </Box>
 
-        {leaveRoomMessage && <Text color="red.500" mt={4}>{leaveRoomMessage}</Text>}
+        {leaveRoomMessage && (
+          <Text color="red.500" mt={4} fontSize="sm">{leaveRoomMessage}</Text>
+        )}
 
-        <AlertDialog isOpen={isDialogOpen} leastDestructiveRef={cancelRef} onClose={() => setIsDialogOpen(false)}>
+        <AlertDialog isOpen={isLeaveRoomDialogOpen} leastDestructiveRef={cancelRef} onClose={() => setIsLeaveRoomDialogOpen(false)}>
           <AlertDialogOverlay>
             <AlertDialogContent>
               <AlertDialogHeader fontSize="lg" fontWeight="bold">Leave Room</AlertDialogHeader>
               <AlertDialogBody>Are you sure you want to leave the room?</AlertDialogBody>
               <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={() => setIsDialogOpen(false)}>No</Button>
+                <Button ref={cancelRef} onClick={() => setIsLeaveRoomDialogOpen(false)}>No</Button>
                 <Button colorScheme="red" onClick={handleConfirmLeave} ml={3}>Yes, Leave</Button>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -509,6 +592,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
       </Box>
     </Box>
   );
+
 };
 
 export default CodeEditor;

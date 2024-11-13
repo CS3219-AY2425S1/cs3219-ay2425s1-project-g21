@@ -18,13 +18,22 @@ import {
   updateUserPasswordByIdForced as _updateUserPasswordByIdForced,
 } from "../model/repository.js";
 
-// Initialize SendGrid with your API key
+// Initialize SendGrid with API key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+// Password validation regex: at least 8 characters, one special symbol, one number, and one uppercase letter
+const VALID_PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 export async function createUser(req, res) {
   try {
     const { username, email, password } = req.body;
     if (username && email && password) {
+      if (!VALID_PASSWORD_REGEX.test(password)) {
+        return res.status(400).json({
+          message: "Password must be at least 8 characters long, contain one special symbol, one number, and one uppercase letter.",
+        });
+      }
+
       const existingUser = await _findUserByUsernameOrEmail(username, email);
       if (existingUser) {
         return res.status(409).json({ message: "username or email already exists" });
@@ -239,7 +248,11 @@ export async function updateUserPassword(req, res) {
       if (isNewPasswordDifferent) {
         return res.status(400).json({ message: "New password is the same as old password" });
       }
-      // TODO: Check if the new password is secure.
+      if (!VALID_PASSWORD_REGEX.test(newPassword)) {
+        return res.status(400).json({
+          message: "Password must be at least 8 characters long, contain one special symbol, one number, and one uppercase letter.",
+        });
+      }
 
       let hashedPassword;
       if (newPassword) {
@@ -279,7 +292,11 @@ export async function updateUserPasswordForced(req, res) {
       if (newPassword !== confirmPassword) {
         return res.status(400).json({ message: "New passwords do not match" });
       }
-      // TODO: Check if the new password is secure.
+      if (!VALID_PASSWORD_REGEX.test(newPassword)) {
+        return res.status(400).json({
+          message: "Password must be at least 8 characters long, contain one special symbol, one number, and one uppercase letter.",
+        });
+      }
 
       let hashedPassword;
       if (newPassword) {

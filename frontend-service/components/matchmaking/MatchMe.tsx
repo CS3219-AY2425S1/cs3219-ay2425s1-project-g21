@@ -26,7 +26,12 @@ const MatchMe: React.FC<MatchMeProps> = ({
   useEffect(() => {
     fetch('http://localhost:8080/api/questions/topics')
       .then((res) => res.json())
-      .then((data) => setAllTopics(data))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const sortedTopics = data.sort((a, b) => a.localeCompare(b));
+          setAllTopics(sortedTopics);
+        }
+      })
       .catch((error) => {
         console.error("Failed to fetch topics:", error);
         toast({
@@ -43,7 +48,15 @@ const MatchMe: React.FC<MatchMeProps> = ({
   useEffect(() => {
     fetch('http://localhost:8080/api/questions/difficulties')
       .then((res) => res.json())
-      .then((data) => setAllDifficulties(data))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const difficultyOrder = ['Easy', 'Medium', 'Hard'];
+          const sortedDifficulties = data.sort(
+            (a, b) => difficultyOrder.indexOf(a) - difficultyOrder.indexOf(b)
+          );
+          setAllDifficulties(sortedDifficulties);
+        }
+      })
       .catch((error) => {
         console.error("Failed to fetch difficulties:", error);
         toast({
@@ -62,19 +75,23 @@ const MatchMe: React.FC<MatchMeProps> = ({
       fetch(`http://localhost:8080/api/questions/difficulties?category=${selectedTopic}`)
         .then((res) => res.json())
         .then((data) => {
-          console.log("Fetched difficulties:", data);
           if (Array.isArray(data)) {
-            setFilteredDifficulties(data);
-          } else {
-            console.error("Unexpected response format:", data);
-            setFilteredDifficulties([]); // Handle unexpected response type
+            const difficultyOrder = ['Easy', 'Medium', 'Hard'];
+            const sortedDifficulties = data.sort(
+              (a, b) => difficultyOrder.indexOf(a) - difficultyOrder.indexOf(b)
+            );
+            setFilteredDifficulties(sortedDifficulties);
           }
         })
         .catch((error) => {
           console.error("Failed to fetch difficulties for the topic:", error);
         });
     } else {
-      setFilteredDifficulties(allDifficulties); // Reset if no topic is selected
+      const difficultyOrder = ['Easy', 'Medium', 'Hard'];
+      const sortedDifficulties = allDifficulties.sort(
+        (a, b) => difficultyOrder.indexOf(a) - difficultyOrder.indexOf(b)
+      );
+      setFilteredDifficulties(sortedDifficulties);
     }
   }, [selectedTopic, allDifficulties]);
 
@@ -84,22 +101,19 @@ const MatchMe: React.FC<MatchMeProps> = ({
       fetch(`http://localhost:8080/api/questions/topics?difficulty=${selectedDifficulty}`)
         .then((res) => res.json())
         .then((data) => {
-          console.log("Fetched topics:", data);
           if (Array.isArray(data)) {
-            setFilteredTopics(data);
-          } else {
-            console.error("Unexpected response format:", data);
-            setFilteredTopics([]); // Handle unexpected response type
+            const sortedTopics = data.sort((a, b) => a.localeCompare(b));
+            setFilteredTopics(sortedTopics);
           }
         })
         .catch((error) => {
           console.error("Failed to fetch topics for the difficulty:", error);
         });
     } else {
-      setFilteredTopics(allTopics); // Reset if no difficulty is selected
+      const sortedTopics = allTopics.sort((a, b) => a.localeCompare(b));
+      setFilteredTopics(sortedTopics);
     }
   }, [selectedDifficulty, allTopics]);
-
 
   const handleMatchMeClick = () => {
     if (selectedTopic && selectedDifficulty) {

@@ -130,7 +130,8 @@ export const createRoom = async (req: Request, res: Response) => {
     }
 
     // "random" algorithm to get a random question from the list of questions
-    const randQuestion = questions[Math.floor(Math.random() * questions.length)];
+    const randQuestion =
+      questions[Math.floor(Math.random() * questions.length)];
     const selectedId = randQuestion.questionId;
 
     const roomId = uuidv4();
@@ -166,7 +167,10 @@ export const createRoom = async (req: Request, res: Response) => {
       createdAt: currTime,
       selectedQuestionId: selectedId,
       status: "active",
-      currentLanguage: "javascript",
+      userLanguages: {
+        [userId1]: "javascript",
+        [userId2]: "javascript",
+      },
     };
 
     await set(roomRef, newRoom);

@@ -212,7 +212,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   useEffect(() => {
     const unsubscribe = onValue(languageChangeRequestRef, (snapshot) => {
       const req = snapshot.val()
-      if (req && req.requestedBy !== thisUserId) {
+      if (req && req.requestedBy !== thisUserId && req.newLanguage !== codeLanguage) {
         setPendingCodeLanguage(req.newLanguage)
         showLanguageChangeToast(req.newLanguage)
       }
@@ -221,7 +221,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     return () => {
       unsubscribe()
     };
-  }, [thisUserId, toast])
+  }, [thisUserId, codeLanguage, toast])
 
   const formatTimeSinceLastSave = () => {
     if (!lastSavedTime) return '';

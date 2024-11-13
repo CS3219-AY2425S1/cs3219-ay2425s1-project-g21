@@ -47,6 +47,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'typing' | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [pendingChangeRequest, setPendingChangeRequest] = useState(false);
 
   const toast = useToast(); // Initialize Chakra UI toast
   const previousUsersCount = useRef<number>(0);
@@ -301,6 +302,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   };
 
   const showLanguageChangeToast = (newLanguage: string) => {
+
+    if (!newLanguage || pendingChangeRequest) return;
+    setPendingChangeRequest(true);
+
     toast({
       position: 'top',
       duration: null,
@@ -322,6 +327,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
             mr={2}
             onClick={() => {
               confirmLanguageChange(newLanguage);
+              setPendingChangeRequest(false);
               onClose();
             }}
           >
@@ -332,6 +338,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
             size="sm"
             onClick={() => {
               declineLanguageChange();
+              setPendingChangeRequest(false);
               onClose();
             }}
           >
@@ -366,6 +373,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
         monacoEditorRef.current.layout();
       }
     }
+    await set(languageChangeRequestRef, {
+      requestedBy: thisUserId,
+      newLanguage,
+      response: 'accepted',
+      timestamp: Date.now(),
+    });
   };
 
   const declineLanguageChange = () => {

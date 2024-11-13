@@ -10,9 +10,9 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import ScrollableFeed from "react-scrollable-feed";
-import { ref, onValue } from "firebase/database"; // Import Firebase functions
-import { FIREBASE_DB } from "../../FirebaseConfig"; // Adjust path to your Firebase config
-import axios from "axios"; // Import axios for API requests
+import { ref, onValue } from "firebase/database";
+import { FIREBASE_DB } from "../../FirebaseConfig";
+import axios from "axios";
 
 interface ChatComponentProps {
   userId: string;
@@ -25,7 +25,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ userId, roomId }) => {
   const [messages, setMessages] = useState<
     { author: string; message: string; time: string }[]
   >([]);
-  const [otherUsername, setOtherUsername] = useState<string | null>(null); // State for the other user's username
+  const [otherUsername, setOtherUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Load messages from local storage on initial render
+    const storedMessages = localStorage.getItem(`chat_messages_${roomId}`);
+    if (storedMessages) {
+      setMessages(JSON.parse(storedMessages));
+    }
+  }, [roomId]);
 
   useEffect(() => {
     // Initialize the socket connection only after userId and roomId are set
@@ -35,7 +43,14 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ userId, roomId }) => {
     newSocket.emit("join_room", { roomId, userId });
 
     newSocket.on("receive_message", (data) => {
-      setMessages((prevMessages) => [...prevMessages, data]);
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages, data];
+        localStorage.setItem(
+          `chat_messages_${roomId}`,
+          JSON.stringify(updatedMessages)
+        ); // Save to local storage
+        return updatedMessages;
+      });
     });
 
     return () => {
@@ -44,62 +59,56 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ userId, roomId }) => {
   }, [userId, roomId]);
 
   useEffect(() => {
-    // Reference to the users in the room
     const userRef = ref(FIREBASE_DB, `rooms/${roomId}/users`);
 
-    // Listen to changes in the users list in the room
     const unsubscribe = onValue(userRef, async (snapshot) => {
       const users = snapshot.val();
-
-      // Find the other user's ID by filtering out the current user's ID
       const otherUserId = Object.keys(users || {}).find((id) => id !== userId);
 
       if (otherUserId) {
         try {
-          // Fetch the username using the /id-to-username/:id endpoint
           const response = await axios.get(
             `${
               import.meta.env.VITE_USER_SERVICE_API_URL
             }/users/id-to-username/${otherUserId}`
           );
-          const username = response.data.username;
-
-          // Update the state with the other user's username
-          setOtherUsername(username);
+          setOtherUsername(response.data.username);
         } catch (error) {
           console.error("Failed to fetch username:", error);
         }
       } else {
-        setOtherUsername(null); // Clear the username if no other user is in the room
+        setOtherUsername(null);
       }
     });
 
-    return () => unsubscribe(); // Cleanup the listener when component unmounts
+    return () => unsubscribe();
   }, [roomId, userId]);
 
   const sendMessage = () => {
-    if (!socket || !userId || !roomId || !message.trim()) return; // Check if message is not empty or whitespace
+    console.log("sendMessage called"); // To check if it's called twice
+
+    if (!socket || !userId || !roomId || !message.trim()) return;
 
     const messageData = {
       roomId,
-      message: message.trim(), // Trim any extra whitespace
+      message: message.trim(),
       author: userId,
       time: new Date().toISOString(),
     };
-    socket.emit("send_message", messageData);
-    setMessage("");
+
+    socket.emit("send_message", messageData); // Send the message to the server
+
+    setMessage(""); // Clear the input field
   };
 
   return (
     <Box p={4} borderWidth={1} borderRadius="md" boxShadow="md" maxW="md">
       <VStack spacing={4} align="stretch">
-        {/* Display the other user's username if available */}
         {otherUsername && (
           <Text fontSize="lg" fontWeight="bold">
             Chatting with: {otherUsername}
           </Text>
         )}
-
         <Box
           bg="gray.50"
           p={4}

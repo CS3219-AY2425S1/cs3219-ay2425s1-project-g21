@@ -22,15 +22,20 @@ export const addQuestion = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { questionId, title, description, category, difficulty } = req.body;
+    const { title, description, category, difficulty } = req.body;
+
+    const lastQuestion = await Question.findOne().sort({ questionId: -1 }).exec();
+    const newQuestionId = lastQuestion ? lastQuestion.questionId + 1 : 1;
 
     const newQuestion = new Question({
-      questionId,
+      questionId: newQuestionId,
       title,
       description,
       category,
       difficulty,
     });
+
+    
 
     const addedQuestion = await newQuestion.save();
 

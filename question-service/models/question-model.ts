@@ -27,7 +27,7 @@ enum Topic {
 }
 
 interface IQuestion extends Document {
-  questionId: Number;
+  questionId: number;
   title: string;
   description: string;
   category: Topic[];

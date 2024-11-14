@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: question-db
+  namespace: default
+  labels:
+    app: question-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: question-db
+  template:
+    metadata:
+      labels:
+        app: question-db
+    spec:
+      containers:
+        - name: question-db
+          image: mongo:latest
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: question-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: question-db
+spec:
+  selector:
+    app: question-db
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  type: ClusterIP

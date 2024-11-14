@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matcher-deployment
+  labels:
+    app: matcher-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: matcher-service
+  template:
+    metadata:
+      labels:
+        app: matcher-service
+    spec:
+      containers:
+        - name: matcher-service
+          image: gcr.io/cs3219-peerprep-440616/matcher-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3003
+          resources:
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matcher-service
+  namespace: default
+spec:
+  selector:
+    app: matcher-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3003
+  type: LoadBalancer
+  loadBalancerIP: "34.142.168.121" # Reserved static IP
+
+---
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: matcher-service-hpa
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: matcher-deployment
+#   minReplicas: 1
+#   maxReplicas: 12
+#   metrics:
+#     - type: Resource
+#       resource:
+#         name: cpu
+#         target:
+#           type: Utilization
+#           averageUtilization: 50

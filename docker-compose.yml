@@ -1,12 +1,15 @@
 services:
-
   frontend-service:
     build: ./frontend-service
     ports:
       - 3000:3000
     depends_on:
-      - question-service
-      - user-service
+      question-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      kafka-setup:
+        condition: service_completed_successfully
     volumes:
       - ./frontend-service:/app
       - /app/node_modules
@@ -16,7 +19,8 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - question-db
+      question-db:
+        condition: service_started
     volumes:
       - ./question-service:/app
       - /app/node_modules
@@ -26,9 +30,31 @@ services:
     ports:
       - 3001:3001
     depends_on:
-      - user-db
+      user-db:
+        condition: service_started
     volumes:
       - ./user-service:/app
+      - /app/node_modules
+  
+  collaboration-service:
+    build: ./collaboration-service
+    ports:
+      - 5001:5001
+    volumes:
+      - ./collaboration-service:/app
+      - /app/node_modules
+    depends_on:
+      kafka-setup:
+        condition: service_completed_successfully
+
+  history-service:
+    build: ./history-service
+    ports:
+      - 5002:5002
+    depends_on:
+      - collaboration-service
+    volumes:
+      - ./history-service:/app
       - /app/node_modules
 
   user-db:
@@ -54,8 +80,10 @@ services:
     ports:
       - 3002:3002
     depends_on:
-      - user-service
-      # - question-service # maybe to retrieve information on the questions difficulties/topics
+      user-service:
+        condition: service_started
+      kafka-setup:
+        condition: service_completed_successfully
     volumes:
       - ./matching-service/request-service:/app
       - /app/node_modules
@@ -65,8 +93,10 @@ services:
     ports:
       - 3003:3003
     depends_on:
-      - user-service
-      # - question-service # maybe to retrieve information on the questions difficulties/topics
+      user-service:
+        condition: service_started
+      kafka-setup:
+        condition: service_completed_successfully
     volumes:
       - ./matching-service/matcher-service:/app
       - /app/node_modules
@@ -75,12 +105,37 @@ services:
     build: ./matching-service/dequeue-service
     ports:
       - 3004:3004
-    # depends_on:
+    depends_on:
+      kafka-setup:
+        condition: service_completed_successfully
       # - user-service
       # - question-service # maybe to retrieve information on the questions difficulties/topics
     volumes:
       - ./matching-service/dequeue-service:/app
       - /app/node_modules
+
+  room-service:
+    build: ./matching-service/room-service
+    ports:
+      - 3005:3005
+    depends_on:
+      user-service:
+        condition: service_started
+      collaboration-service: # add after dockerising collaboration-service
+        condition: service_started
+      kafka-setup:
+        condition: service_completed_successfully
+    volumes:
+      - ./matching-service/room-service:/app
+      - /app/node_modules
+
+  chat-service:
+    build:
+      context: ./chat-service
+    ports:
+      - "4000:4000"
+    depends_on:
+      - user-service
 
   kafka:
     image: bitnami/kafka
@@ -109,14 +164,11 @@ services:
     depends_on:
       - kafka
 
-
 volumes:
   user-db-data:
     name: user-db-data
   question-db-data:
     name: question-db-data
-
-
 # Notes:
 #
 # Docker Compose will automatically create an internal network where services can resolve each other using their service names.

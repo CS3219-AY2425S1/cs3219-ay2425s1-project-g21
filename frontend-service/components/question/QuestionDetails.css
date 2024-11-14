@@ -7,4 +7,22 @@
 
 .question-details h2 {
   margin-top: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border-bottom: 2px solid #d3d3d3;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.question-details p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0.5rem 0;
+}
+
+.question-details .difficulty {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  margin-top: 0.5rem;
+  border-radius: 6px;
 }

@@ -154,7 +154,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
       }
     }
     loadUserLanguage()
-  }, [thisUserId, roomId])
+  }, [thisUserId, roomId, codeRef, userLanguagesRef])
 
   // Actions based on whether the other user is present
   useEffect(() => {
@@ -379,7 +379,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   };
 
   const confirmLanguageChange = async (newLanguage: string) => {
-    await set(ref(FIREBASE_DB, `rooms/${roomId}/code/${codeLanguage}`), code);
+    const currentEditorContent = monacoEditorRef.current?.getValue();
+
+    if (currentEditorContent !== undefined) {
+      await set(ref(FIREBASE_DB, `rooms/${roomId}/code/${codeLanguage}`), currentEditorContent);
+    }
 
     await set(child(userLanguagesRef, thisUserId), newLanguage);
     setCodeLanguage(newLanguage);
@@ -411,6 +415,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   };
 
   const declineLanguageChange = () => {
+    setPendingChangeRequest(false);
   };
 
   const handleEditorDidMount: OnMount = (editor) => {

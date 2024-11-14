@@ -1,0 +1,91 @@
+.signup-page {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  height: 800px;
+  background-color: #ffffff;
+}
+
+.signup-container {
+  display: flex;
+  max-width: 1000px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 50px;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  margin-bottom: 10px;
+  padding: 12px;
+  width: 100%;
+  border: 1px solid #736b60;
+  font-size: 14px;
+  background-color: #ffffff;
+}
+
+.signup-button {
+  background-color: #65afff;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+label {
+  display: flex;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+p {
+  display: block;
+  margin-top: 20px;
+  padding-bottom: 15px;
+  text-align: center;
+}
+
+.accountLogin {
+  display: block;
+  margin-top: 20px;
+  padding-bottom: 15px;
+  text-align: center;
+}
+
+.loginText {
+  color: #0f3dde;
+}
+
+.signup-graphic {
+  flex: 1;
+  flex-direction: column;
+  background: linear-gradient(145.02deg, #44cfee 0%, #1e94e9 97.16%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+.signup-graphic img {
+  max-width: 100%;
+  height: auto;
+}
+
+.signup-graphic-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: left;
+}

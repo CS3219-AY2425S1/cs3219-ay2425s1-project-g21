@@ -1,0 +1,119 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collaboration-deployment
+  labels:
+    app: collaboration-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collaboration-service
+  template:
+    metadata:
+      labels:
+        app: collaboration-service
+    spec:
+      containers:
+        - name: collaboration-service
+          image: gcr.io/cs3219-peerprep-440616/collaboration-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5001
+          env:
+            - name: AUTH_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: AUTH_DOMAIN
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: DATABASE_URL
+            - name: PROJECT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: PROJECT_ID
+            - name: STORAGE_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: STORAGE_BUCKET
+            - name: MESSAGING_SENDER_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: MESSAGING_SENDER_ID
+            - name: APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: APP_ID
+            - name: MEASUREMENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: MEASUREMENT_ID
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: PORT
+            - name: USER_SERVICE_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: USER_SERVICE_URI
+            - name: QUESTION_SERVICE_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: QUESTION_SERVICE_URI
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: collaboration-service-secrets
+                  key: API_KEY
+          resources:
+            limits:
+              cpu: "350m"
+              memory: "512Mi"
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: collaboration-service
+spec:
+  selector:
+    app: collaboration-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5001
+  type: LoadBalancer
+  loadBalancerIP: "34.124.160.233" # Reserved static IP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: collaboration-service-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: collaboration-deployment
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50

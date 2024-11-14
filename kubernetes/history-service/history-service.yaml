@@ -1,0 +1,112 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: history-deployment
+  labels:
+    app: history-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: history-service
+  template:
+    metadata:
+      labels:
+        app: history-service
+    spec:
+      containers:
+        - name: history-service
+          image: gcr.io/cs3219-peerprep-440616/history-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5002
+          env:
+            - name: AUTH_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: AUTH_DOMAIN
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: DATABASE_URL
+            - name: PROJECT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: PROJECT_ID
+            - name: STORAGE_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: STORAGE_BUCKET
+            - name: MESSAGING_SENDER_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: MESSAGING_SENDER_ID
+            - name: APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: APP_ID
+            - name: MEASUREMENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: MEASUREMENT_ID
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: PORT
+            - name: USER_SERVICE_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: USER_SERVICE_URI
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: history-service-secrets
+                  key: API_KEY
+          resources:
+            limits:
+              cpu: "100m"
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: history-service
+spec:
+  selector:
+    app: history-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5002
+  type: ClusterIP
+
+---
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: history-service-hpa
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: history-deployment
+#   minReplicas: 1
+#   maxReplicas: 10
+#   metrics:
+#     - type: Resource
+#       resource:
+#         name: cpu
+#         target:
+#           type: Utilization
+#           averageUtilization: 50

@@ -1,0 +1,89 @@
+/* .question-list-container {
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar {
+  margin-bottom: 1rem;
+}
+
+.search-bar label {
+  margin-right: 0.5rem;
+}
+
+.search-bar input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.question-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.question-table th,
+.question-table td {
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.question-table th {
+  background-color: #f2a900;
+  color: white;
+}
+
+.question-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.question-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.difficulty {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: white;
+}
+
+.difficulty.easy {
+  background-color: #28a745;
+}
+
+.difficulty.medium {
+  background-color: #ffc107;
+}
+
+.difficulty.hard {
+  background-color: #dc3545;
+} */
+/* QuestionList.css */
+.card-container {
+  background-color: white;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar {
+  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.custom-table th,
+.custom-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.custom-table th {
+  background-color: #f7fafc;
+  font-weight: bold;
+}
+
+.custom-table tr:nth-child(even) {
+  background-color: #f9fafb;
+}

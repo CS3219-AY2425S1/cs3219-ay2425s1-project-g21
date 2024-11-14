@@ -129,7 +129,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: frontend-service
+    name: frontend-deployment
   minReplicas: 1
   maxReplicas: 10
   metrics:
@@ -138,4 +138,4 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 50
+          averageUtilization: 70

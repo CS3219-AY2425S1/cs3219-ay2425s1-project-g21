@@ -38,8 +38,7 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 3004
-  type: LoadBalancer
-  loadBalancerIP: "35.247.132.154" # Reserved static IP
+  type: ClusterIP
 
 ---
 apiVersion: autoscaling/v2
@@ -50,7 +49,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: dequeue-service
+    name: dequeue-deployment
   minReplicas: 1
   maxReplicas: 10
   metrics:

@@ -20,11 +20,16 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 4000
+          env:
+            - name: USER_SERVICE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: request-service-config
+                  key: USER_SERVICE_API_URL
           resources:
             limits:
-              cpu: "0.5"
-            requests:
-              cpu: "0.2"
+              cpu: "250m"
+              memory: "500Mi"
 
 ---
 apiVersion: v1
@@ -39,24 +44,24 @@ spec:
       port: 80
       targetPort: 4000
   type: LoadBalancer
-  loadBalancerIP: "34.120.118.253" # Reserved static IP
+  loadBalancerIP: "35.247.129.36"
 
 ---
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: chat-service-hpa
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: chat-service
-  minReplicas: 1
-  maxReplicas: 10
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 50
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: chat-service-hpa
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: chat-deployment
+#   minReplicas: 1
+#   maxReplicas: 10
+#   metrics:
+#     - type: Resource
+#       resource:
+#         name: cpu
+#         target:
+#           type: Utilization
+#           averageUtilization: 50

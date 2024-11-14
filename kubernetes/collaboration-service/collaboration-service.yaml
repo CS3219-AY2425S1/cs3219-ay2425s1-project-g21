@@ -62,11 +62,16 @@ spec:
                 configMapKeyRef:
                   name: collaboration-service-config
                   key: PORT
-            - name: USER_SERVICE_URL
+            - name: USER_SERVICE_URI
               valueFrom:
                 configMapKeyRef:
                   name: collaboration-service-config
-                  key: USER_SERVICE_URL
+                  key: USER_SERVICE_URI
+            - name: QUESTION_SERVICE_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: collaboration-service-config
+                  key: QUESTION_SERVICE_URI
             - name: API_KEY
               valueFrom:
                 secretKeyRef:
@@ -74,7 +79,7 @@ spec:
                   key: API_KEY
           resources:
             limits:
-              cpu: "500m"
+              cpu: "350m"
               memory: "512Mi"
 
 ---
@@ -102,7 +107,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: collaboration-service
+    name: collaboration-deployment
   minReplicas: 1
   maxReplicas: 10
   metrics:

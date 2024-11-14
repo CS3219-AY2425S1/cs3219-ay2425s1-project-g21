@@ -22,7 +22,7 @@ spec:
             - containerPort: 3003
           resources:
             limits:
-              cpu: "500m"
+              cpu: "300m"
               memory: "256Mi"
 
 ---
@@ -42,21 +42,21 @@ spec:
   loadBalancerIP: "34.142.168.121" # Reserved static IP
 
 ---
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: matcher-service-hpa
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: matcher-service
-  minReplicas: 1
-  maxReplicas: 12
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 50
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: matcher-service-hpa
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: matcher-deployment
+#   minReplicas: 1
+#   maxReplicas: 12
+#   metrics:
+#     - type: Resource
+#       resource:
+#         name: cpu
+#         target:
+#           type: Utilization
+#           averageUtilization: 50

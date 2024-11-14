@@ -18,7 +18,7 @@ spec:
       containers:
         - name: history-service
           image: gcr.io/cs3219-peerprep-440616/history-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 5002
           env:
@@ -62,6 +62,11 @@ spec:
                 configMapKeyRef:
                   name: history-service-config
                   key: PORT
+            - name: USER_SERVICE_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: history-service-config
+                  key: USER_SERVICE_URI
             - name: API_KEY
               valueFrom:
                 secretKeyRef:
@@ -69,8 +74,7 @@ spec:
                   key: API_KEY
           resources:
             limits:
-              cpu: "500m"
-              memory: "128Mi"
+              cpu: "100m"
 
 ---
 # Service
@@ -88,21 +92,21 @@ spec:
   type: ClusterIP
 
 ---
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: history-service-hpa
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: history-service
-  minReplicas: 1
-  maxReplicas: 10
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 50
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: history-service-hpa
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: history-deployment
+#   minReplicas: 1
+#   maxReplicas: 10
+#   metrics:
+#     - type: Resource
+#       resource:
+#         name: cpu
+#         target:
+#           type: Utilization
+#           averageUtilization: 50

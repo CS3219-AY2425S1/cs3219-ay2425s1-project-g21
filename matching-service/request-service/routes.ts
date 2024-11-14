@@ -3,7 +3,7 @@ import { Kafka } from 'kafkajs';
 
 const router = Router();
 
-const kafka = new Kafka({ brokers: ['kafka:9092'] });
+const kafka = new Kafka({ brokers: ['kafka:9092'], retry: { retries: 5 } });
 const kafkaProducer = kafka.producer();
 const kafkaConsumer = kafka.consumer({ groupId: 'request-service' });
 const dequeueConsumer = kafka.consumer({ groupId: 'request-service-dequeue' });
@@ -12,8 +12,6 @@ const matchesMap = new Map();
 const statusMap = new Map();
 const matchTimestamps = new Map();  // New map to store request timestamps
 const matchTopicsMap = new Map();  // New map to store topic based on userID
-
-// TODO: When `cancel-match-event`, set user status to `isNotMatching`
 
 (async () => {
     await kafkaProducer.connect();
@@ -29,6 +27,12 @@ const matchTopicsMap = new Map();  // New map to store topic based on userID
                 matchesMap.set(matchFoundData.userB, matchFoundData);
                 statusMap.set(matchFoundData.userA, 'isMatched');
                 statusMap.set(matchFoundData.userB, 'isMatched');
+
+                matchTimestamps.delete(matchFoundData.userA);
+                matchTopicsMap.delete(matchFoundData.userB);
+                matchTimestamps.delete(matchFoundData.userA);
+                matchTopicsMap.delete(matchFoundData.userB);
+                console.log("Cleared match request for users: ", matchFoundData.userA, matchFoundData.userB);
             }
         },
     });
@@ -61,23 +65,31 @@ const matchTopicsMap = new Map();  // New map to store topic based on userID
 })();
 
 const verifyJWT = async (authorizationHeader: string | undefined) => {
+    if (!authorizationHeader) {
+        throw new Error("Missing Authorization header");
+    }
+
     try {
         const response = await fetch("http://user-service:3001/auth/verify-token", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `${authorizationHeader}`,
+                Authorization: authorizationHeader,
             },
         });
+
         const data = await response.json();
+
         if (data.message !== "Token verified") {
             throw new Error(`JWT verification failed: ${data.message}`);
         }
+
         return data.data; // Return user data if verification is successful
     } catch (error) {
         throw new Error("Failed to verify JWT");
     }
 };
+
 
 router.post('/find-match', async (req, res) => {
     try {
@@ -96,20 +108,26 @@ router.post('/find-match', async (req, res) => {
             topic: "match-events",
             messages: [{ key: userData.id, value: JSON.stringify(matchRequestData) }],
         });
+        console.log(`Produced match request: ${JSON.stringify(matchRequestData)}`);
 
         // Set user status to `isMatching`
         statusMap.set(userData.id, 'isMatching');
-        matchTimestamps.set(userData.id, Date.now());  // Store the time when the match was requested
-        matchTopicsMap.set(userData.id, req.body.topic);  // Store the topic when the match was requested
+        matchTimestamps.set(userData.id, Date.now());
+        matchTopicsMap.set(userData.id, req.body.topic);
 
         res.json({ message: "Received match request" });
-
     } catch (error) {
-        // TODO: Improve error handling
-        console.error("Error: ", error);
-        res.status(500).json({ message: "Internal server error" });
+        if (error instanceof Error) {
+            if (error.message.includes("Failed to verify JWT")) {
+                res.status(401).json({ message: "Unauthorized. Please re-authenticate." });
+            } else {
+                console.error("Error: ", error);
+                res.status(500).json({ message: "Internal server error" });
+            }
+        }
     }
 });
+
 
 // New cancel-matching endpoint
 router.post('/cancel-matching', async (req, res) => {
@@ -143,18 +161,35 @@ router.post('/cancel-matching', async (req, res) => {
         res.json({ message: "Match canceled successfully and status cleared" });
 
     } catch (error) {
-        console.error("Error canceling match:", error);
-        res.status(500).json({ message: "Internal server error" });
+        if (error instanceof Error) {
+            if (error.message.includes("Failed to verify JWT")) {
+                res.status(401).json({ message: "Unauthorized. Please re-authenticate." });
+            } else {
+                console.error("Error: ", error);
+                res.status(500).json({ message: "Internal server error" });
+            }
+        }
     }
 });
 
 router.get('/match-status', async (req, res) => {
-    const userData = await verifyJWT(req.headers.authorization);
+    try {
+        const userData = await verifyJWT(req.headers.authorization);
 
-    if (statusMap.has(userData.id)) {
-        res.json({ matchStatus: `${statusMap.get(userData.id)}` });
-    } else {
-        res.json({ matchStatus: 'isNotMatching' });
+        if (statusMap.has(userData.id)) {
+            res.json({ matchStatus: `${statusMap.get(userData.id)}` });
+        } else {
+            res.json({ matchStatus: 'isNotMatching' });
+        }
+    } catch (error) {
+        if (error instanceof Error) {
+            if (error.message.includes("Failed to verify JWT")) {
+                res.status(401).json({ message: "Unauthorized. Please re-authenticate." });
+            } else {
+                console.error("Error: ", error);
+                res.status(500).json({ message: "Internal server error" });
+            }
+        }
     }
 });
 
@@ -172,8 +207,14 @@ router.get('/waiting-time', async (req, res) => {
             res.status(404).json({ message: "User is not in the match queue" });
         }
     } catch (error) {
-        console.error("Error: ", error);
-        res.status(500).json({ message: "Internal server error" });
+        if (error instanceof Error) {
+            if (error.message.includes("Failed to verify JWT")) {
+                res.status(401).json({ message: "Unauthorized. Please re-authenticate." });
+            } else {
+                console.error("Error: ", error);
+                res.status(500).json({ message: "Internal server error" });
+            }
+        }
     }
 });
 
@@ -185,8 +226,14 @@ router.post('/reset-status', async (req, res) => {
         res.json({ message: "Reset match status to not matching" });
 
     } catch (error) {
-        console.error("Error: ", error);
-        res.status(500).json({ message: "Internal server error" });
+        if (error instanceof Error) {
+            if (error.message.includes("Failed to verify JWT")) {
+                res.status(401).json({ message: "Unauthorized. Please re-authenticate." });
+            } else {
+                console.error("Error: ", error);
+                res.status(500).json({ message: "Internal server error" });
+            }
+        }
     }
 });
 

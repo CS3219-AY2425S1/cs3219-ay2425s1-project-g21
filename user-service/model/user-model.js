@@ -26,6 +26,19 @@ const UserModelSchema = new Schema({
     required: true,
     default: false,
   },
+  tempPassword: {
+    type: String,
+    required: false,
+  },
+  tempPasswordCreatedAt: {
+    type: Date,
+    required: false,
+  },
+  mustUpdatePassword: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
 });
 
 export default mongoose.model("UserModel", UserModelSchema);

@@ -6,7 +6,9 @@ import "./QuestionDetails.css";
 const QuestionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { questions, loading, error } = useQuestions();
-  const question = questions.find((q) => q.questionId === parseInt(id || "", 10));
+  const question = questions.find(
+    (q) => q.questionId
+  );
 
   if (loading) {
     return <div>Loading...</div>;
@@ -24,13 +26,13 @@ const QuestionDetails: React.FC = () => {
     <div className="question-details">
       <h2>{question.title}</h2>
       <p>
+        <strong>Description:</strong> {question.description}
+      </p>
+      <p>
         <strong>Difficulty:</strong> {question.difficulty}
       </p>
       <p>
-        <strong>Category:</strong> {question.category}
-      </p>
-      <p>
-        <strong>Description:</strong> {question.description}
+        <strong>Category:</strong> {question.category.join(", ")}
       </p>
     </div>
   );

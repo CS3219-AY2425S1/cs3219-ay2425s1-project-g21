@@ -4,11 +4,20 @@ import "./login.css";
 import signupGraphic from "../../assets/images/signup_graphic.png";
 import { useToast } from "@chakra-ui/react";
 
-interface LoginProps {
-  updateAuthStatus: React.Dispatch<React.SetStateAction<boolean>>;
+interface UserData {
+  id: string
+  username: string
+  email: string
+  isAdmin: boolean
+  mustUpdatePassword: boolean
 }
 
-const Login: React.FC<LoginProps> = ({ updateAuthStatus }) => {
+interface LoginProps {
+  onLogin: (data: UserData) => void;
+  updateAuthStatus: (isAuthenticated: boolean, userIsAdmin: boolean) => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onLogin, updateAuthStatus }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -28,9 +37,33 @@ const Login: React.FC<LoginProps> = ({ updateAuthStatus }) => {
 
       const data = await response.json();
       if (response.ok) {
-        localStorage.setItem("token", data.data.accessToken);
-        updateAuthStatus(true);
+        localStorage.setItem("token", data.data.accessToken)
+        localStorage.setItem("userId", data.data.userId)
+        localStorage.setItem("email", email)
+        console.log("Stored token:", localStorage.getItem("token"))
+        console.log("Stored userId:", localStorage.getItem("userId"))
+        console.log("Stored email:", localStorage.getItem("email"))
+        onLogin(data.data);
         navigate("/questions");
+        localStorage.setItem("token", data.data.accessToken);
+
+        const verifyResponse = await fetch(
+          "http://localhost:3001/auth/verify-token",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${data.data.accessToken}`,
+            },
+          }
+        );
+        const verifyData = await verifyResponse.json();
+        if (verifyData.message === "Token verified") {
+          updateAuthStatus(true, verifyData.data.isAdmin);
+          navigate("/questions");
+        } else {
+          throw new Error("Failed to verify token after login.");
+        }
       } else {
         toast({
           title: "Error",
@@ -85,7 +118,7 @@ const Login: React.FC<LoginProps> = ({ updateAuthStatus }) => {
                 <input name="checkbox" type="checkbox" />
                 Remember me
               </label>
-              <a href="#" className="forgot-password">
+              <a href="/forgot-password" className="forgot-password">
                 Forgot Password?
               </a>
             </div>

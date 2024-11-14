@@ -1,10 +1,14 @@
 import React from "react";
 import QuestionList from "../../components/question/QuestionList";
 
-const QuestionPage: React.FC = () => {
+interface QuestionPageProps {
+  userIsAdmin: boolean;
+}
+
+const QuestionPage: React.FC<QuestionPageProps> = ({ userIsAdmin }) => {
   return (
     <div>
-      <QuestionList />
+      <QuestionList userIsAdmin={userIsAdmin} />
     </div>
   );
 };

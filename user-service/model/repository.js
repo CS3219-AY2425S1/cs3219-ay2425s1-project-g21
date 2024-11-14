@@ -36,6 +36,15 @@ export async function findUserByUsernameOrEmail(username, email) {
   });
 }
 
+export async function findUserByIdentifier(identifier) {
+  return UserModel.findOne({
+    $or: [
+      { username: identifier },
+      { email: identifier },
+    ],
+  });
+}
+
 export async function findAllUsers() {
   return UserModel.find();
 }
@@ -63,6 +72,46 @@ export async function updateUserPrivilegeById(userId, isAdmin) {
       },
     },
     { new: true },  // return the updated user
+  );
+}
+
+export async function updateUserPasswordById(userId, password) {
+  return UserModel.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        password,
+      },
+    },
+    { new: true },  // return the updated user
+  );
+}
+
+export async function updateUserTempPasswordById(userId, tempPassword) {
+  return UserModel.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        tempPassword,
+        tempPasswordCreatedAt: new Date(), // Set the current date and time
+      },
+    },
+    { new: true },  // return the updated user
+  );
+}
+
+export async function updateUserPasswordByIdForced(userId, password) {
+  return UserModel.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        password,
+        mustUpdatePassword: false,
+        tempPassword: null,
+        tempPasswordCreatedAt: null,
+      },
+    },
+    { new: true }  // return the updated user
   );
 }
 

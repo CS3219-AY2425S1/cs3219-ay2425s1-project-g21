@@ -17,7 +17,7 @@ import {
 import { FIREBASE_DB } from "../../FirebaseConfig";
 import { ref, onValue, set, get, child } from "firebase/database";
 import axios from "axios";
-import QuestionSideBar from "./QuestionSidebar";
+import QuestionSideBar from "./QuestionSideBar";
 import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../../src/utils/fetchWithAuth";
 import { shikiToMonaco } from "@shikijs/monaco";

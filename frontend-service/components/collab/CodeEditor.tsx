@@ -44,8 +44,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   const [pendingCodeLanguage, setPendingCodeLanguage] = useState<string | null>(
     null
   );
-  const [question, setQuestion] = useState<Question | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [saveStatus, setSaveStatus] = useState<
     "saved" | "saving" | "typing" | null
@@ -79,6 +77,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   );
 
   const languageRef = ref(FIREBASE_DB, `rooms/${roomId}/currentLanguage`);
+  const [lastLanguageRequest, setLastLanguageRequest] = useState<string | null>(
+    null
+  );
 
   const cancelRef = useRef(null);
   const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
@@ -379,8 +380,16 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   };
 
   const showLanguageChangeToast = (newLanguage: string) => {
-    if (!newLanguage || pendingChangeRequest) return;
+    if (
+      !newLanguage ||
+      pendingChangeRequest ||
+      lastLanguageRequest === newLanguage
+    )
+      return;
     setPendingChangeRequest(true);
+    setLastLanguageRequest(newLanguage);
+
+    toast.closeAll();
 
     toast({
       position: "top",
@@ -399,6 +408,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
             onClick={() => {
               confirmLanguageChange(newLanguage);
               setPendingChangeRequest(false);
+              setLastLanguageRequest(null);
               onClose();
             }}
           >
@@ -410,6 +420,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
             onClick={() => {
               declineLanguageChange();
               setPendingChangeRequest(false);
+              setLastLanguageRequest(null);
               onClose();
             }}
           >

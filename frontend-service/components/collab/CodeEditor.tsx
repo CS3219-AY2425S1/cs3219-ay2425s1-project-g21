@@ -156,28 +156,23 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
 
   useEffect(() => {
     const loadUserLanguage = async () => {
-      const userLanguageSnapshot = await get(
-        child(userLanguagesRef, thisUserId)
-      ); // userLang references userID with language
-      const userLanguage = userLanguageSnapshot.val() || "javascript"; // default lang set as javascript
-      setCodeLanguage(userLanguage);
+      const userLanguageSnapshot = await get(child(userLanguagesRef, thisUserId)) // userLang references userID with language
+      const userLanguage = userLanguageSnapshot.val() || 'javascript' // default lang set as javascript
+      setCodeLanguage(userLanguage)
 
       // load code snippet
-      const codeSnippetSnapshot = await get(codeRef);
-      const codeSnippets = codeSnippetSnapshot.val();
+      const codeSnippetSnapshot = await get(codeRef)
+      const codeSnippets = codeSnippetSnapshot.val()
       if (codeSnippets && codeSnippets[userLanguage]) {
-        setCode(codeSnippets[userLanguage]);
+        setCode(codeSnippets[userLanguage])
       } else {
-        const placeholderCode = languageType[userLanguage];
-        setCode(placeholderCode);
-        await set(
-          ref(FIREBASE_DB, `rooms/${roomId}/code/${userLanguage}`),
-          placeholderCode
-        );
+        const placeholderCode = languageType[userLanguage]
+        setCode(placeholderCode)
+        await set(ref(FIREBASE_DB, `rooms/${roomId}/code/${userLanguage}`), placeholderCode)
       }
-    };
-    loadUserLanguage();
-  }, [thisUserId, roomId]);
+    }
+    loadUserLanguage()
+  }, [thisUserId, roomId, codeRef, userLanguagesRef])
 
   // Actions based on whether the other user is present
   useEffect(() => {
@@ -187,8 +182,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
       // Count only users with a true status, excluding the current user
       const activeUsers = users
         ? Object.entries(users).filter(
-            ([userId, status]) => status === true && userId !== thisUserId
-          )
+          ([userId, status]) => status === true && userId !== thisUserId
+        )
         : [];
       const userCount = activeUsers.length;
 
@@ -432,7 +427,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   };
 
   const confirmLanguageChange = async (newLanguage: string) => {
-    await set(ref(FIREBASE_DB, `rooms/${roomId}/code/${codeLanguage}`), code);
+    const currentEditorContent = monacoEditorRef.current?.getValue();
+
+    if (currentEditorContent !== undefined) {
+      await set(ref(FIREBASE_DB, `rooms/${roomId}/code/${codeLanguage}`), currentEditorContent);
+    }
 
     await set(child(userLanguagesRef, thisUserId), newLanguage);
     setCodeLanguage(newLanguage);
@@ -467,7 +466,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     });
   };
 
-  const declineLanguageChange = () => {};
+  const declineLanguageChange = () => {
+    setPendingChangeRequest(false);
+  };
 
   const handleEditorDidMount: OnMount = (editor) => {
     monacoEditorRef.current = editor;
@@ -506,8 +507,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
         const seconds = timeDifference % 60;
 
         setTimeElapsed(
-          `${hours > 0 ? `${hours}h ` : ""}${
-            minutes > 0 ? `${minutes}m ` : ""
+          `${hours > 0 ? `${hours}h ` : ""}${minutes > 0 ? `${minutes}m ` : ""
           }${seconds}s`
         );
       }, 1000);
@@ -595,15 +595,15 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
                   saveStatus === "saved"
                     ? "green.500"
                     : saveStatus === "saving"
-                    ? "orange.500"
-                    : "gray.500"
+                      ? "orange.500"
+                      : "gray.500"
                 }
               >
                 {saveStatus === "saved"
                   ? "Saved"
                   : saveStatus === "saving"
-                  ? "Saving..."
-                  : formatTimeSinceLastSave()}
+                    ? "Saving..."
+                    : formatTimeSinceLastSave()}
               </Text>
             )}
 

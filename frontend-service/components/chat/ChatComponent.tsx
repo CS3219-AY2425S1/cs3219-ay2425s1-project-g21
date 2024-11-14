@@ -114,7 +114,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ userId, roomId }) => {
           p={4}
           borderRadius="md"
           overflowY="auto"
-          height="600px"
+          height="450px"
           width="100%"
         >
           <ScrollableFeed>

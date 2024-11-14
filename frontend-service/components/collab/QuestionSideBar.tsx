@@ -40,11 +40,7 @@ const QuestionSideBar: React.FC<QuestionSideBarProps> = ({
   useEffect(() => {
     if (assignedQuestionId) {
       axios
-        .get(
-          `${
-            import.meta.env.VITE_QUESTION_SERVICE_API_URL
-          }/api/questions/${assignedQuestionId}`
-        )
+        .get(`http://localhost:8080/api/questions/${assignedQuestionId}`)
         .then((response) => {
           console.log("Fetched question details:", response.data);
           setAssignedQuestion(response.data);
@@ -65,7 +61,6 @@ const QuestionSideBar: React.FC<QuestionSideBarProps> = ({
       boxShadow="md"
       borderColor="gray.200"
       bg="grey.50"
-      height="100vh"
     >
       <Tabs>
         <TabList>

@@ -40,7 +40,11 @@ const QuestionSideBar: React.FC<QuestionSideBarProps> = ({
   useEffect(() => {
     if (assignedQuestionId) {
       axios
-        .get(`http://localhost:8080/api/questions/${assignedQuestionId}`)
+        .get(
+          `${
+            import.meta.env.VITE_QUESTION_SERVICE_API_URL
+          }/api/questions/${assignedQuestionId}`
+        )
         .then((response) => {
           console.log("Fetched question details:", response.data);
           setAssignedQuestion(response.data);

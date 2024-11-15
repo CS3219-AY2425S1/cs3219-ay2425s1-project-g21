@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Question } from "../types";
 import { useToast } from "@chakra-ui/react";
+import { Query } from "firebase/firestore";
 
 const useQuestions = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -29,7 +30,7 @@ const useQuestions = () => {
     }
   };
 
-  const addQuestion = async (newQuestion: Question) => {
+  const addQuestion = async (newQuestion: Omit<Question, "questionId">) => {
     try {
       const response = await fetch(
         `${import.meta.env.VITE_QUESTION_SERVICE_API_URL}/api/questions`,
@@ -41,6 +42,7 @@ const useQuestions = () => {
           body: JSON.stringify(newQuestion),
         }
       );
+      console.log(newQuestion);
       const data = await response.json();
 
       if (response.ok) {

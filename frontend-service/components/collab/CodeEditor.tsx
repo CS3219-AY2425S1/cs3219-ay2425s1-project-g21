@@ -15,7 +15,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { FIREBASE_DB } from '../../FirebaseConfig';
-import { ref, onValue, set, get, child } from 'firebase/database';
+import { ref, onValue, get, child, onDisconnect, update, set, remove } from "firebase/database";
 import axios from 'axios';
 import QuestionSideBar from './QuestionSidebar';
 import { useNavigate } from 'react-router-dom';
@@ -77,6 +77,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
 
   const toast = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const userPresenceRef = ref(FIREBASE_DB, `rooms/${roomId}/users/${thisUserId}`);
+
+    // set user presence to true when user join room
+    set(userPresenceRef, true);
+
+    // Set up onDisconnect to set the user's presence to false automatically when they go offline
+    onDisconnect(userPresenceRef).set(false);
+  }, [roomId, thisUserId]);
+
 
   // create a use effect for fetching of question id assigned to users in the room
   useEffect(() => {
@@ -191,7 +202,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     return () => {
       unsubscribe();
     };
-  }, [toast]);
+  }, [toast, usersRef, thisUserId]);
 
   // Show save state of the code
   useEffect(() => {

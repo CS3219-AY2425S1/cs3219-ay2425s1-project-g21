@@ -22,7 +22,11 @@ const STAGE = {
   UNSUCCESSFUL: "unsuccessful",
 };
 
-const MatchingPage: React.FC = () => {
+interface MatchingPageProps {
+  setUserActivity: React.Dispatch<React.SetStateAction<"room" | "matching" | null>>;
+}
+
+const MatchingPage: React.FC<MatchingPageProps> = ( { setUserActivity } ) => {
   const [stage, setStage] = useState(STAGE.MATCHME);
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("");
@@ -163,11 +167,15 @@ const MatchingPage: React.FC = () => {
   };
 
   useEffect(() => {
+    setUserActivity("matching");
     checkMatchStatus();
     const interval = setInterval(() => {
       checkMatchStatus();
     }, 500);
-    return () => clearInterval(interval);
+    return () => {
+      setUserActivity(null);
+      clearInterval(interval);
+    }
   }, []);
 
   return (

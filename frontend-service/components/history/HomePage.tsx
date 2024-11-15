@@ -179,6 +179,7 @@ const HomePage: React.FC = () => {
                 <Th bgColor="yellow.300">ID</Th>
                 <Th bgColor="yellow.300">Title</Th>
                 <Th bgColor="yellow.300">Submitted At</Th>
+                <Th bgColor="yellow.300">Time Taken</Th>
                 <Th bgColor="yellow.300">Difficulty</Th>
                 <Th bgColor="yellow.300">Submission</Th>
               </Tr>
@@ -213,6 +214,7 @@ const HomePage: React.FC = () => {
                       }
                     )}
                   </Td>
+                  <Td>{question.attemptTimeTaken || "Unknown"}</Td>
                   <Td>
                     <Box
                       display="inline-block"

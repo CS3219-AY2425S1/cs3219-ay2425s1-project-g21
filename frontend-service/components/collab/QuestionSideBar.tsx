@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { ref, get } from "firebase/database";
+import { FIREBASE_DB } from "../../FirebaseConfig";
 import {
   Box,
   Tabs,
@@ -36,6 +38,7 @@ const QuestionSideBar: React.FC<QuestionSideBarProps> = ({
   const [assignedQuestion, setAssignedQuestion] = useState<Question | null>(
     null
   );
+  const questionDetailsRef = ref(FIREBASE_DB, `rooms/${roomId}/questionDetails`);
 
   useEffect(() => {
     if (assignedQuestionId) {
@@ -49,9 +52,24 @@ const QuestionSideBar: React.FC<QuestionSideBarProps> = ({
           console.log("Fetched question details:", response.data);
           setAssignedQuestion(response.data);
         })
-        .catch((error) =>
+        .catch((error) => {
           console.error("Failed to fetch question details", error)
+          get(questionDetailsRef)
+            .then((snapshot) => {
+              if (snapshot.exists()) {
+                const data = snapshot.val(); // Access the data here
+                setAssignedQuestion(data);
+                console.log("Question Details:", data);
+              } else {
+                console.log("No data available");
+              }
+            })
+            .catch((error) => {
+              console.error("Error fetching data:", error);
+            });
+          }
         );
+    } else {
     }
   }, [assignedQuestionId]);
 

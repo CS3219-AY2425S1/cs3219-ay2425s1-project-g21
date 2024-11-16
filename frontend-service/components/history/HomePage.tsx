@@ -90,8 +90,8 @@ const HomePage: React.FC = () => {
 
           return {
             ...historyItem,
-            questionTitle: questionDetails?.title || "Unknown Title",
-            difficulty: questionDetails?.difficulty || "Unknown",
+            questionTitle: questionDetails?.title || historyItem?.questionTitle || "Unknown Title",
+            difficulty: questionDetails?.difficulty || historyItem?.difficulty || "Unknown",
           };
         });
 

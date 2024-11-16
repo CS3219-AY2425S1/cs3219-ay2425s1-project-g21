@@ -190,6 +190,12 @@ export const createRoom = async (req: Request, res: Response) => {
         [userId1]: "javascript",
         [userId2]: "javascript",
       },
+      questionDetails: {
+        title: randQuestion.title,
+        description: randQuestion.description,
+        category: randQuestion.category,
+        difficulty: randQuestion.difficulty,
+      }
     };
 
     await set(roomRef, newRoom);
@@ -205,6 +211,7 @@ export const createRoom = async (req: Request, res: Response) => {
       selectedQuestionId: selectedId,
       questionTitle: randQuestion.title,
       category: randQuestion.category,
+      difficulty: randQuestion.difficulty,
       attemptDateTime: currTime,
       attemptTimeTaken: "", // empty string means session has not ended
       attemptTimeStart: Date.now(),

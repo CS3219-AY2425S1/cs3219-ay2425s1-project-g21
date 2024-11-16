@@ -115,7 +115,7 @@ export const getQuestionById = async (
 ): Promise<void> => {
   try {
     const question = await Question.findOne({
-      questionId: req.params.id,
+      questionId: Number(req.params.id),
     });
     if (question) {
       res.status(200).json(question);

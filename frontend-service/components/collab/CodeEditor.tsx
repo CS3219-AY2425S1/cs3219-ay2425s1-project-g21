@@ -15,7 +15,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { FIREBASE_DB } from "../../FirebaseConfig";
-import { ref, onValue, set, get, child } from "firebase/database";
+import { ref, onValue, set, get, child, onDisconnect } from "firebase/database";
 import axios from "axios";
 import QuestionSideBar from "./QuestionSideBar";
 import { useNavigate } from "react-router-dom";
@@ -89,6 +89,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
   const toast = useToast();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const userPresenceRef = ref(FIREBASE_DB, `rooms/${roomId}/users/${thisUserId}`);
+
+    // set user presence to true when user join room
+    set(userPresenceRef, true);
+
+    // Set up onDisconnect to set the user's presence to false automatically when they go offline
+    onDisconnect(userPresenceRef).set(false);
+  }, [roomId, thisUserId]);
+
+
   // create a use effect for fetching of question id assigned to users in the room
   useEffect(() => {
     const fetchRoomData = async () => {
@@ -122,18 +133,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
         console.error("Failed to fetch room data:", error);
       }
     };
-
-    // const fetchAssignedQn = async (questionId: number) => {
-    //   try {
-    //     const response = await axios.get(`${
-    //   import.meta.env.VITE_QUESTION_SERVICE_API_URL
-    // }/api/questions/${questionId}`)
-    //     console.log("Fetched question details:", response.data)
-    //     // setQuestion(response.data)
-    //   } catch (error) {
-    //     console.error("Failed to fetch question details:", error)
-    //   }
-    // }
 
     fetchRoomData();
   }, [roomId]);
@@ -205,6 +204,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
         });
       }
 
+      if (userCount > previousUsersCount.current) {
+        toast({
+          title: "Partner joined the room",
+          description:
+            "The other user has joined the room. The editor is now editable.",
+          status: "info",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+
       // Update the previous user count to the current count
       previousUsersCount.current = userCount;
     });
@@ -212,7 +222,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, thisUserId }) => {
     return () => {
       unsubscribe();
     };
-  }, [toast]);
+  }, [toast, usersRef, thisUserId]);
 
   // Show save state of the code
   useEffect(() => {

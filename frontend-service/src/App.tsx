@@ -1,5 +1,7 @@
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { Box, Spinner } from "@chakra-ui/react";
+import axios from "axios";
+import { fetchWithAuth } from "./utils/fetchWithAuth";
 import "./App.css";
 import QuestionPage from "./pages/QuestionPage";
 import QuestionDetails from "../components/question/QuestionDetails";
@@ -33,14 +35,16 @@ function App() {
   const [userIsAdmin, setUserIsAdmin] = useState(false);
   const [userData, setUserData] = useState<UserData | undefined>(undefined);
   const [loading, setLoading] = useState(true);
-  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
-    useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const [userActivity, setUserActivity] = useState<"room" | "matching" | null>(null);
 
   const updateAuthStatus = (authStatus: boolean, isAdminStatus = false) => {
     setIsAuthenticated(authStatus);
     setUserIsAdmin(isAdminStatus);
   };
   const [userId, setUserId] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -91,10 +95,77 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsAuthenticated(false);
-    setUserData(undefined);
+  const handleLogout = async () => {
+    try {
+      if (userActivity === "room") {
+        await handleLeaveRoom();
+      } else if (userActivity === "matching") {
+        await handleCancelMatching();
+      }
+
+      localStorage.removeItem("token");
+      setIsAuthenticated(false);
+      setUserData(undefined);
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
+  const handleCancelMatching = async () => {
+    try {
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+  
+      await fetch(`${import.meta.env.VITE_REQUEST_SERVICE_API_URL}/cancel-matching`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+  
+      console.log("Matching cancelled successfully.");
+    } catch (error) {
+      console.error("Error cancelling matching:", error);
+    }
+  };
+
+  const handleLeaveRoom = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("token");
+  
+      if (!userId || !token) {
+        navigate("/login");
+        return;
+      }
+  
+      const response = await axios.post(
+        `${import.meta.env.VITE_COLLABORATION_SERVICE_API_URL}/room/leaveRoom`,
+        { userId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      await fetchWithAuth(
+        `${import.meta.env.VITE_REQUEST_SERVICE_API_URL}/reset-status`,
+        {
+          method: "POST",
+        }
+      );
+  
+      console.log(response.data.message || "You have left the room.");
+    } catch (error) {
+      console.error("Error leaving room:", error);
+    }
   };
 
   const handlePasswordChanged = () => {
@@ -120,6 +191,7 @@ function App() {
         isAuthenticated={isAuthenticated}
         username={userData ? userData.username : ""}
         onLogout={handleLogout}
+        // TODO: Logging out here should trigger leave room event if in room, and cancel matching event if in queue.
       />
       <Box pt="80px">
         <Routes>
@@ -155,11 +227,11 @@ function App() {
           {isAuthenticated ? (
             <>
               <Route path="/" element={<HomePage />} />
-              <Route path="/match-me" element={<MatchingPage />} />
-              <Route path="/editor" element={<CodeEditor />} />
+              <Route path="/match-me" element={<MatchingPage setUserActivity={setUserActivity} />} />
+              <Route path="/editor" element={<CodeEditor />} /> {/* TODO: Should this be a route? */}
               <Route
                 path="/room"
-                element={<RoomPage userId={userData?.id} />}
+                element={<RoomPage userId={userData?.id} setUserActivity={setUserActivity} />}
               />
               <Route
                 path="/room/:roomId"

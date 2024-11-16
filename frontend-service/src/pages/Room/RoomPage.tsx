@@ -7,9 +7,10 @@ import { ref, onValue } from "firebase/database";
 
 interface RoomPageProps {
   userId: string;
+  setUserActivity: React.Dispatch<React.SetStateAction<"room" | "matching" | null>>;
 }
 
-const RoomPage: React.FC<RoomPageProps> = ({ userId }) => {
+const RoomPage: React.FC<RoomPageProps> = ({ userId, setUserActivity }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +18,13 @@ const RoomPage: React.FC<RoomPageProps> = ({ userId }) => {
   const [roomStatus, setRoomStatus] = useState<"active" | "inactive">(
     "inactive"
   );
+
+  useEffect(() => {
+    setUserActivity("room");
+    return () => {
+      setUserActivity(null);
+    }
+  }, [setUserActivity]);
 
   // Function to handle joining the room
   const joinRoom = async () => {

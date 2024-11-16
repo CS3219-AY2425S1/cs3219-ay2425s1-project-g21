@@ -1,12 +1,15 @@
 import request from "supertest";
 import express from "express";
-import Question from "../models/question-model"; // Ensure this points to your model path
+import Question from "../models/question-model";
 import {
   fetchAllQuestions,
   addQuestion,
   getQuestionById,
   deleteQuestionById,
 } from "./question-controller";
+
+// Increase timeout for all tests in this suite
+jest.setTimeout(10000);
 
 // Sample Express setup
 const app = express();
@@ -17,7 +20,8 @@ app.get("/questions/:id", getQuestionById);
 app.delete("/questions/:id", deleteQuestionById);
 
 describe("Question Controller", () => {
-  afterEach(() => {
+  beforeEach(() => {
+    // Clear all mocks before each test
     jest.clearAllMocks();
   });
 
@@ -48,36 +52,59 @@ describe("Question Controller", () => {
 
   describe("addQuestion", () => {
     it("should add a new question and return it", async () => {
+      // Mock findOne for getting the last question ID
+      jest.spyOn(Question, "findOne").mockReturnValue({
+        sort: () => ({
+          exec: () => Promise.resolve({ questionId: 0 }),
+        }),
+      } as any);
+
       const newQuestionData = {
-        questionId: "q1",
-        questionText: "What is an algorithm?",
+        title: "Algorithm Basics",
+        description: "What is an algorithm?",
+        category: ["algorithms"],
         difficulty: "Medium",
       };
 
+      // Mock the save operation
       jest
         .spyOn(Question.prototype, "save")
-        .mockResolvedValue(newQuestionData as any);
+        .mockResolvedValue({ ...newQuestionData, questionId: 1 } as any);
 
       const response = await request(app)
         .post("/questions")
         .send(newQuestionData);
 
       expect(response.status).toBe(201);
-      expect(response.body).toEqual(newQuestionData);
+      expect(response.body).toMatchObject({
+        ...newQuestionData,
+        questionId: 1,
+      });
     });
-    it("should return 409 for duplicate question", async () => {
-      jest.setTimeout(10000); // Increase timeout for this test
 
-      const error = { code: 11000, keyValue: { questionId: "q1" } };
+    it("should return 409 for duplicate question", async () => {
+      // Mock findOne for getting the last question ID
+      jest.spyOn(Question, "findOne").mockReturnValue({
+        sort: () => ({
+          exec: () => Promise.resolve({ questionId: 0 }),
+        }),
+      } as any);
+
+      const error = { code: 11000, keyValue: { title: "Duplicate Title" } };
       jest.spyOn(Question.prototype, "save").mockRejectedValue(error as any);
 
       const response = await request(app)
         .post("/questions")
-        .send({ questionId: "q1", questionText: "What is an algorithm?" });
+        .send({
+          title: "Duplicate Title",
+          description: "Test description",
+          category: ["test"],
+          difficulty: "Easy",
+        });
 
       expect(response.status).toBe(409);
       expect(response.body).toEqual({
-        message: "Duplicate value for field: questionId.",
+        message: "Duplicate value for field: title.",
       });
     });
   });

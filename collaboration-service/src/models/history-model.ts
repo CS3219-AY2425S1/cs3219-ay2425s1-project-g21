@@ -23,6 +23,7 @@ export interface HistoryModel {
     selectedQuestionId: number;
     questionTitle: string;
     category: Topic[];
+    difficulty: string;
     attemptDateTime: string;   
     attemptTimeTaken: string;
     attemptTimeStart: number;

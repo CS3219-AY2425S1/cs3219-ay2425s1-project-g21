@@ -7,7 +7,7 @@ const QuestionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { questions, loading, error } = useQuestions();
   const question = questions.find(
-    (q) => q.questionId
+    (q) => q.questionId == Number(id)
   );
 
   if (loading) {

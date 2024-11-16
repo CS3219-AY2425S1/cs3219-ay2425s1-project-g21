@@ -19,4 +19,10 @@ export interface Room {
     newLanguage: "javascript" | "python" | "csharp" | "java";
     timestamp: number;
   };
+  questionDetails: {
+    title: string;
+    description: string;
+    category: string[];
+    difficulty: string;
+  }
 }

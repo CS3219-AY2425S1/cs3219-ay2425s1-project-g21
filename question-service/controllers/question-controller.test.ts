@@ -83,6 +83,7 @@ describe("Question Controller", () => {
     });
 
     it("should return 409 for duplicate question", async () => {
+      console.log("Testing duplicate question");
       // Mock findOne for getting the last question ID
       jest.spyOn(Question, "findOne").mockReturnValue({
         sort: () => ({

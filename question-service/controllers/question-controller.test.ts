@@ -125,6 +125,7 @@ describe("Question Controller", () => {
     });
 
     it("should return 404 if question not found", async () => {
+      console.log("Testing question not found");
       jest.spyOn(Question, "findOne").mockResolvedValue(null);
 
       const response = await request(app).get("/questions/q99");

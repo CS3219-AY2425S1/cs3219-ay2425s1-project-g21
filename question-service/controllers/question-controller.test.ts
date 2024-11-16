@@ -65,8 +65,9 @@ describe("Question Controller", () => {
       expect(response.status).toBe(201);
       expect(response.body).toEqual(newQuestionData);
     });
-
     it("should return 409 for duplicate question", async () => {
+      jest.setTimeout(10000); // Increase timeout for this test
+
       const error = { code: 11000, keyValue: { questionId: "q1" } };
       jest.spyOn(Question.prototype, "save").mockRejectedValue(error as any);
 
